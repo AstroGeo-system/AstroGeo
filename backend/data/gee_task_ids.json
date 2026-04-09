@@ -1,0 +1,274 @@
+{
+  "punjab_haryana_delhi": {
+    "zone": "punjab_haryana_delhi",
+    "task_id": "4NT75FXIE7NPAX6AFKVVPTKW",
+    "states": [
+      "Punjab",
+      "Haryana",
+      "Delhi",
+      "Chandigarh"
+    ],
+    "pipeline_hash": "51410ed128765570ff11c6f1e30180034d66a26d75f802ab6d96cc31b5a921c5",
+    "submitted_at": "2026-03-30T16:52:26Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_punjab_haryana_delhi.csv",
+    "status": "SUBMITTED"
+  },
+  "uttar_pradesh_bihar": {
+    "zone": "uttar_pradesh_bihar",
+    "task_id": "437MNIKXVPFUDASGLDCG6V3G",
+    "states": [
+      "Uttar Pradesh",
+      "Bihar"
+    ],
+    "pipeline_hash": "2f65b100d9ca38e95199bb821af8d22c43e718b86d1315c59f8312ef3d5f35f9",
+    "submitted_at": "2026-03-30T16:52:29Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_uttar_pradesh_bihar.csv",
+    "status": "SUBMITTED"
+  },
+  "west_bengal_sikkim": {
+    "zone": "west_bengal_sikkim",
+    "task_id": "GZ7DZTFIWOISMPINKZ6TY7JP",
+    "states": [
+      "West Bengal",
+      "Sikkim"
+    ],
+    "pipeline_hash": "fea6fa221f4263c6937ea138fff4f1517aac356383216fec3973f4406a4a02e4",
+    "submitted_at": "2026-03-30T16:52:33Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_west_bengal_sikkim.csv",
+    "status": "SUBMITTED"
+  },
+  "rajasthan": {
+    "zone": "rajasthan",
+    "task_id": "JFMA7R4P3CUK2UVC4CDO2Z6X",
+    "states": [
+      "Rajasthan"
+    ],
+    "pipeline_hash": "f5299009694ed6ddfe40abb67801676172a5f7f33283e554baae55e563f412a0",
+    "submitted_at": "2026-03-30T16:52:37Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_rajasthan.csv",
+    "status": "SUBMITTED"
+  },
+  "gujarat_dadra_dd": {
+    "zone": "gujarat_dadra_dd",
+    "task_id": "P4XO735GUFCAQ2OIBKBE6LU2",
+    "states": [
+      "Gujarat",
+      "Dadra & NH",
+      "Daman & Diu"
+    ],
+    "pipeline_hash": "35586d8f309aaf831af7ae348ff3d49540fb2c65b72dba84666ab7a1d91f0a42",
+    "submitted_at": "2026-03-30T16:52:40Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_gujarat_dadra_dd.csv",
+    "status": "SUBMITTED"
+  },
+  "maharashtra_marathwada": {
+    "zone": "maharashtra_marathwada",
+    "task_id": "LYQZP5OKRDWI6AFOQORPP4O2",
+    "states": [
+      "Maharashtra (Marathwada)"
+    ],
+    "pipeline_hash": "5ac68fd965e5b96365e725fcdd25a14bdfaa227c6e50cd0f0d7565dc70ecc2c8",
+    "submitted_at": "2026-03-30T16:52:43Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_maharashtra_marathwada.csv",
+    "status": "SUBMITTED"
+  },
+  "maharashtra_vidarbha": {
+    "zone": "maharashtra_vidarbha",
+    "task_id": "UNF43PJUWL4RMULMHES27IBE",
+    "states": [
+      "Maharashtra (Vidarbha)"
+    ],
+    "pipeline_hash": "03dccd314c81e9d19ee8074c62d4aa1c52e1415073255e344cefd80675e3d50e",
+    "submitted_at": "2026-03-30T16:52:47Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_maharashtra_vidarbha.csv",
+    "status": "SUBMITTED"
+  },
+  "madhya_pradesh_chhattisgarh": {
+    "zone": "madhya_pradesh_chhattisgarh",
+    "task_id": "7EAWUI7IVDDKCNFQXVEWPGRN",
+    "states": [
+      "Madhya Pradesh",
+      "Chhattisgarh"
+    ],
+    "pipeline_hash": "49b95d46ddf377521c7b55e6086f5ea8952f8d48e25780db9b062b6f4c876d64",
+    "submitted_at": "2026-03-30T16:52:49Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_madhya_pradesh_chhattisgarh.csv",
+    "status": "SUBMITTED"
+  },
+  "jharkhand_odisha": {
+    "zone": "jharkhand_odisha",
+    "task_id": "Z3USPYWEZFNXMT32R6CKKS7A",
+    "states": [
+      "Jharkhand",
+      "Odisha"
+    ],
+    "pipeline_hash": "3f8f11ea7e62e9ed74c406bac757fb5407b9f821fab9118fdf25261f24d3bead",
+    "submitted_at": "2026-03-30T16:52:52Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_jharkhand_odisha.csv",
+    "status": "SUBMITTED"
+  },
+  "andhra_telangana_coast": {
+    "zone": "andhra_telangana_coast",
+    "task_id": "6U4SG2PSVZCNIR5YBAKXNQMU",
+    "states": [
+      "Andhra Pradesh",
+      "Telangana"
+    ],
+    "pipeline_hash": "fa031dab348199dc7b318d77ce4f22b6280f99028f8f9f7e013276f3991f30ca",
+    "submitted_at": "2026-03-30T16:52:55Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_andhra_telangana_coast.csv",
+    "status": "SUBMITTED"
+  },
+  "karnataka_goa": {
+    "zone": "karnataka_goa",
+    "task_id": "5DQCQQFSOQESF4NRFJ7WTQQO",
+    "states": [
+      "Karnataka",
+      "Goa"
+    ],
+    "pipeline_hash": "58b0e109973067ad0ae33da9b4aa63d8adaec4657093745c7fb5c463a983e439",
+    "submitted_at": "2026-03-30T16:52:58Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_karnataka_goa.csv",
+    "status": "SUBMITTED"
+  },
+  "kerala_lakshadweep": {
+    "zone": "kerala_lakshadweep",
+    "task_id": "EVW3TZDSKWNIYVG4T2FUKK3Z",
+    "states": [
+      "Kerala",
+      "Lakshadweep"
+    ],
+    "pipeline_hash": "f7e7e7af0c521da69f8da3e479541b0b8b313cba80e8a745eaac4f085061e5a2",
+    "submitted_at": "2026-03-30T16:53:02Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_kerala_lakshadweep.csv",
+    "status": "SUBMITTED"
+  },
+  "tamil_nadu_puducherry": {
+    "zone": "tamil_nadu_puducherry",
+    "task_id": "TOZSBJNQWK4VDLFD6JKDTIGX",
+    "states": [
+      "Tamil Nadu",
+      "Puducherry"
+    ],
+    "pipeline_hash": "a1c59d28e59d5d44cd0a577b193dc44f42e688e6ec2a13353830e5e6f3636408",
+    "submitted_at": "2026-03-30T16:53:06Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_tamil_nadu_puducherry.csv",
+    "status": "SUBMITTED"
+  },
+  "northeast_assam_meghalaya": {
+    "zone": "northeast_assam_meghalaya",
+    "task_id": "I5JGWMWKJNBYNHNLT57RSQEH",
+    "states": [
+      "Assam",
+      "Meghalaya",
+      "Tripura"
+    ],
+    "pipeline_hash": "0d56bda7ffd1a427edbac449f9afeabab24c072fa2b17dfe95cbf90baeb668b4",
+    "submitted_at": "2026-03-30T16:53:09Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_northeast_assam_meghalaya.csv",
+    "status": "SUBMITTED"
+  },
+  "northeast_hill_states": {
+    "zone": "northeast_hill_states",
+    "task_id": "WDMFJDUIMZ3S2HAATVFTPV4C",
+    "states": [
+      "Arunachal Pradesh",
+      "Nagaland",
+      "Manipur",
+      "Mizoram"
+    ],
+    "pipeline_hash": "32305fb94d3984a7e3024391c5c0e241af51b603606dce597b7ea7a2368b381d",
+    "submitted_at": "2026-03-30T16:53:13Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_northeast_hill_states.csv",
+    "status": "SUBMITTED"
+  },
+  "himachal_uttarakhand": {
+    "zone": "himachal_uttarakhand",
+    "task_id": "GEV53V3LO46OOCYZU4GQ6RII",
+    "states": [
+      "Himachal Pradesh",
+      "Uttarakhand"
+    ],
+    "pipeline_hash": "696c0f568412fbcad80aedf0af5fe45c8d209a985a447fc072dd1441f1d1fa41",
+    "submitted_at": "2026-03-30T16:53:16Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_himachal_uttarakhand.csv",
+    "status": "SUBMITTED"
+  },
+  "kashmir_ladakh": {
+    "zone": "kashmir_ladakh",
+    "task_id": "YCTD5LDDDDXX7LW7V7QUISG4",
+    "states": [
+      "Jammu & Kashmir",
+      "Ladakh"
+    ],
+    "pipeline_hash": "61bedd38dd3e1a8b07349f422fc38c3decc17db8343eb14b50c3e10d559108fa",
+    "submitted_at": "2026-03-30T16:53:19Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_kashmir_ladakh.csv",
+    "status": "SUBMITTED"
+  },
+  "andaman_nicobar": {
+    "zone": "andaman_nicobar",
+    "task_id": "PPFGVTSPCURY4CW3UNQEL7YD",
+    "states": [
+      "Andaman & Nicobar Islands"
+    ],
+    "pipeline_hash": "b7f7f95e2b4317456b4b1416f2c3cd6537d4044af67ddb88923342d911c6f19b",
+    "submitted_at": "2026-03-30T16:53:23Z",
+    "samples_per_class": 300,
+    "scale_metres": 100,
+    "drive_folder": "AstroGeo_GEE_Exports",
+    "file_name": "ndvi_v2_andaman_nicobar.csv",
+    "status": "SUBMITTED"
+  }
+}

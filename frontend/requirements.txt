@@ -1,0 +1,13 @@
+streamlit
+plotly
+folium
+streamlit-folium
+pandas
+langchain-openai
+python-dotenv
+sqlalchemy
+psycopg2-binary
+requests
+httpx
+matplotlib
+joblib

@@ -1,0 +1,182 @@
+[
+  {
+    "zone": "andaman_nicobar",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "andhra_telangana_coast",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "gujarat_dadra_dd",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "himachal_uttarakhand",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "jharkhand_odisha",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "karnataka_goa",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "kashmir_ladakh",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "kerala_lakshadweep",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "madhya_pradesh_chhattisgarh",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "maharashtra_marathwada",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "maharashtra_vidarbha",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "northeast_assam_meghalaya",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "northeast_hill_states",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "punjab_haryana_delhi",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "rajasthan",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "tamil_nadu_puducherry",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "uttar_pradesh_bihar",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  },
+  {
+    "zone": "west_bengal_sikkim",
+    "rows": 1200,
+    "class_distribution": {
+      "0": 300,
+      "1": 300,
+      "2": 300,
+      "3": 300
+    }
+  }
+]

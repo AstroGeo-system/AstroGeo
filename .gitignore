@@ -1,0 +1,17 @@
+venv/
+.env
+backend/.env
+__pycache__/
+*/__pycache__/
+*.pyc
+**/.DS_Store
+
+# Credentials
+backend/config/credentials.json
+backend/config/client_secret_*.json
+backend/config/drive_token.json
+backend/config/.cdsapirc
+
+# Models & Large Data
+backend/models/*.pkl
+backend/data/*.csv

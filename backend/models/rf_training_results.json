@@ -1,0 +1,38 @@
+{
+  "model_file": "geospatial_rf_model.pkl",
+  "training_rows": 17280,
+  "test_rows": 4320,
+  "test_accuracy": 0.8287,
+  "cv_accuracy_mean": 0.8243,
+  "cv_accuracy_std": 0.0049,
+  "per_class_metrics": {
+    "Stable vegetation": {
+      "precision": 0.8061,
+      "recall": 0.662,
+      "f1_score": 0.727
+    },
+    "Vegetation loss": {
+      "precision": 0.9647,
+      "recall": 0.988,
+      "f1_score": 0.9762
+    },
+    "Urban growth": {
+      "precision": 0.6744,
+      "recall": 0.8056,
+      "f1_score": 0.7342
+    },
+    "Stable other": {
+      "precision": 0.8949,
+      "recall": 0.8593,
+      "f1_score": 0.8767
+    }
+  },
+  "top_feature_overall": "Delta total\n(2018\u21922024)",
+  "shap_top_per_class": {
+    "Stable vegetation": "Delta total\n(2018\u21922024)",
+    "Vegetation loss": "Delta total\n(2018\u21922024)",
+    "Urban growth": "Delta total\n(2018\u21922024)",
+    "Stable other": "NDVI 2020"
+  },
+  "trained_at": "2026-03-30T17:03:18.353261+00:00"
+}
