@@ -1,0 +1,71 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# DVC Pipeline — Astrogeo Launch Model
+# Run:  dvc repro           (full pipeline, skips up-to-date stages)
+#       dvc repro training  (single stage)
+#       dvc exp show        (compare experiments)
+# ─────────────────────────────────────────────────────────────────────────────
+
+stages:
+
+  data_ingestion:
+    cmd: python 01_scrape_launches.py
+    deps:
+      - 01_scrape_launches.py
+    outs:
+      - data/isro_launches_raw.csv
+
+  data_fetch_era5:
+    cmd: python 02_fetch_era5.py
+    deps:
+      - 02_fetch_era5.py
+    outs:
+      - data/era5_sriharikota.nc:
+          cache: true
+          persist: true       # keep across runs even if dep changes (large file)
+
+  feature_engineering:
+    cmd: python 03_feature_engineering.py
+    deps:
+      - 03_feature_engineering.py
+      - data/isro_launches_raw.csv
+      - data/era5_sriharikota.nc
+    outs:
+      - data/training_data.csv
+
+  training:
+    cmd: python 04_train_model.py
+    deps:
+      - 04_train_model.py
+      - data/training_data.csv
+      - configs/model_config.yaml
+    params:
+      - configs/model_config.yaml:
+          - n_estimators
+          - max_depth
+          - min_samples_leaf
+          - random_seed
+          - lr_C
+          - lr_max_iter
+          - train_split
+          - test_split
+          - cv_n_splits
+          - go_threshold
+          - marginal_threshold
+    outs:
+      - models/ensemble.pkl
+      - models/scaler.pkl
+      - models/shap_explainer.pkl
+      - models/feature_cols.json
+    metrics:
+      - metrics/scores.json:
+          cache: false    # keep in Git, not DVC cache
+
+  save_to_db:
+    cmd: python 05_save_to_db.py
+    deps:
+      - 05_save_to_db.py
+      - models/ensemble.pkl
+      - models/scaler.pkl
+      - models/shap_explainer.pkl
+      - models/feature_cols.json
+      - data/training_data.csv

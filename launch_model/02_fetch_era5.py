@@ -8,7 +8,26 @@ import cdsapi
 import os
 from datetime import datetime
 
-os.makedirs('data', exist_ok=True)
+# --- [TRACKING] ---
+TRACKING_ENABLED = os.getenv("TRACKING_ENABLED", "true") == "true"
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+try:
+    from utils.logger import setup_logger
+    from utils.run_tracker import track_stage, set_logger
+    _logger, _log_file = setup_logger(run_name="data_fetch_era5")
+    set_logger(_logger)
+except Exception as _e:
+    import logging
+    _logger = logging.getLogger(__name__)
+    _log_file = None
+    track_stage = lambda name: (lambda fn: fn)
+    print(f"[TRACKING] Logger setup failed (non-fatal): {_e}")
+# --- [TRACKING] ---
 
 VARIABLES = [
     '2m_dewpoint_temperature',
@@ -29,6 +48,9 @@ LOCATIONS = {
     }
 }
 
+os.makedirs('data', exist_ok=True)
+
+@track_stage("fetch_era5_timeseries")
 def fetch_era5_timeseries(location_name, location_params):
     print(f"\n--- Fetching ERA5 timeseries for {location_name} ---")
     c = cdsapi.Client()
@@ -113,6 +135,8 @@ def _fetch_era5_chunked(location_name, output_file, c, current_year):
 
 
 if __name__ == "__main__":
+    _logger.info("=== SCRIPT 02: data_fetch_era5 START ===")
     for loc_name, params in LOCATIONS.items():
         fetch_era5_timeseries(loc_name, params)
+    _logger.info("=== SCRIPT 02: data_fetch_era5 DONE ===")
     print("\nDone. Check data/ for the .nc files.")

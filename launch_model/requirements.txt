@@ -15,3 +15,12 @@ psycopg2-binary
 python-dotenv
 streamlit>=1.32
 plotly>=5.18
+
+# --- [TRACKING] Experiment tracking & structured logging ---
+mlflow>=2.12
+dagshub>=0.3
+dvc>=3.49
+dvclive>=3.0
+loguru>=0.7
+rich>=13.0
+pyyaml>=6.0

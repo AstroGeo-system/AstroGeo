@@ -1,8 +1,10 @@
 venv/
 .env
 backend/.env
+launch_model/.env
 __pycache__/
 */__pycache__/
+**/__pycache__/
 *.pyc
 **/.DS_Store
 
@@ -15,3 +17,12 @@ backend/config/.cdsapirc
 # Models & Large Data
 backend/models/*.pkl
 backend/data/*.csv
+
+# --- [TRACKING] DVC, MLflow, logs ---
+launch_model/.dvc/cache/
+launch_model/.dvc/tmp/
+launch_model/mlruns/
+launch_model/logs/
+launch_model/*.db
+launch_model/mlflow.db
+launch_model/metrics/*.json

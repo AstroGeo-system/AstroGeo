@@ -14,6 +14,21 @@ from sqlalchemy import create_engine, text
 
 load_dotenv()
 
+# --- [TRACKING] ---
+TRACKING_ENABLED = os.getenv("TRACKING_ENABLED", "true") == "true"
+try:
+    from utils.logger import setup_logger
+    from utils.run_tracker import track_stage, set_logger
+    _logger, _log_file = setup_logger(run_name="save_to_db")
+    set_logger(_logger)
+except Exception as _e:
+    import logging
+    _logger = logging.getLogger(__name__)
+    _log_file = None
+    track_stage = lambda name: (lambda fn: fn)
+    print(f"[TRACKING] Logger setup failed (non-fatal): {_e}")
+# --- [TRACKING] ---
+
 # ─────────────────────────────────────────────
 # DB connection
 # ─────────────────────────────────────────────
@@ -56,6 +71,7 @@ CREATE TABLE IF NOT EXISTS launch_predictions (
     created_at          TIMESTAMP DEFAULT NOW()
 );
 """
+_logger.info("=== SCRIPT 05: save_to_db START ===")
 with engine.connect() as conn:
     conn.execute(text(CREATE_TABLE_SQL))
     conn.commit()
@@ -155,3 +171,5 @@ with engine.connect() as conn:
     print(f"  Total rows:    {result[0]}")
     print(f"  Avg prob:      {result[1]:.3f}")
     print(f"  Favorable:     {result[2]}")
+
+_logger.info(f"=== SCRIPT 05: save_to_db DONE — {len(records_df)} rows written to '{TABLE_NAME}' ===")

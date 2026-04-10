@@ -8,6 +8,28 @@ import numpy as np
 import xarray as xr
 import os
 
+# --- [TRACKING] ---
+TRACKING_ENABLED = os.getenv("TRACKING_ENABLED", "true") == "true"
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+try:
+    from utils.logger import setup_logger
+    from utils.run_tracker import track_stage, set_logger
+    _logger, _log_file = setup_logger(run_name="feature_engineering")
+    set_logger(_logger)
+except Exception as _e:
+    import logging
+    _logger = logging.getLogger(__name__)
+    _log_file = None
+    track_stage = lambda name: (lambda fn: fn)
+    print(f"[TRACKING] Logger setup failed (non-fatal): {_e}")
+# --- [TRACKING] ---
+
+_logger.info("=== SCRIPT 03: feature_engineering START ===")
 # ─────────────────────────────────────────────
 # Load launches
 # ─────────────────────────────────────────────
@@ -34,7 +56,7 @@ print(f"Total launches: {len(df)} (Sriharikota: {len(sriharikota)}, Cape: {len(c
 
 def era5_to_daily_df(nc_path, lat, lon):
     """Open ERA5 NetCDF, select nearest grid point, convert to daily pandas DataFrame."""
-    ds = xr.open_dataset(nc_path)
+    ds = xr.open_dataset(nc_path, engine='netcdf4')
     
     # Select nearest grid cell
     # ERA5 may have coordinate 'valid_time' or 'time'
@@ -184,3 +206,4 @@ print(final['label'].value_counts())
 os.makedirs('data', exist_ok=True)
 final.to_csv('data/training_data.csv', index=False)
 print("Saved: data/training_data.csv")
+_logger.info(f"=== SCRIPT 03: feature_engineering DONE — {len(final)} rows, {len(available_features)} features ===")
