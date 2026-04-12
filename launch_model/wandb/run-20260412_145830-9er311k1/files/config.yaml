@@ -1,0 +1,44 @@
+_wandb:
+    value:
+        cli_version: 0.25.1
+        e:
+            vb1oisjcrfkm2dctdwqwqub8gix1z5wz:
+                codePath: launch_model\monitoring\drift_detector.py
+                codePathLocal: monitoring\drift_detector.py
+                cpu_count: 10
+                cpu_count_logical: 12
+                disk:
+                    /:
+                        total: "494376316928"
+                        used: "318253432832"
+                email: anushkamalilive@gmail.com
+                executable: C:\Users\aksha\anaconda3\python.exe
+                git:
+                    commit: 14bc5007d60ce01219ddb4db3975a4431cb04ae1
+                    remote: https://github.com/anushkamali-2005/astro_geo.git
+                host: Akshay_Laptop
+                memory:
+                    total: "16847876096"
+                os: Windows-11-10.0.26200-SP0
+                program: C:\Users\aksha\Downloads\Astrogeo-Graphrag\launch_model\monitoring\drift_detector.py
+                python: CPython 3.13.9
+                root: C:\Users\aksha\Downloads\Astrogeo-Graphrag\launch_model
+                startedAt: "2026-04-12T09:28:30.210936Z"
+                writerId: vb1oisjcrfkm2dctdwqwqub8gix1z5wz
+        m: []
+        python_version: 3.13.9
+        t:
+            "1":
+                - 5
+                - 53
+                - 105
+            "2":
+                - 5
+                - 53
+                - 105
+            "4": 3.13.9
+            "5": 0.25.1
+            "8":
+                - 3
+            "12": 0.25.1
+            "13": windows-amd64

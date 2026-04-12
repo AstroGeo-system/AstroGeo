@@ -1,0 +1,41 @@
+{
+  "scaler_type": "StandardScaler",
+  "means": {
+    "cloud_cover_pct": 58.0252,
+    "wind_speed_ms": 4.5295,
+    "precipitation_mm": 0.1135,
+    "temperature_c": 28.9759,
+    "relative_humidity_pct": 74.7352,
+    "surface_pressure_hpa": 1006.8693,
+    "precip_3day_sum": 0.3158,
+    "cloud_cover_day_minus_1": 56.9849,
+    "wind_speed_max_3day": 5.4575,
+    "month": 6.3,
+    "is_monsoon_season": 0.3032,
+    "day_of_year": 177.3806,
+    "is_cyclone_season": 0.2581,
+    "vehicle_PSLV": 0.0323,
+    "vehicle_GSLV": 0.0161,
+    "vehicle_LVM3": 0.0258,
+    "vehicle_Falcon": 0.0742
+  },
+  "scales": {
+    "cloud_cover_pct": 40.0767,
+    "wind_speed_ms": 1.6529,
+    "precipitation_mm": 0.3737,
+    "temperature_c": 2.1716,
+    "relative_humidity_pct": 7.2318,
+    "surface_pressure_hpa": 4.4912,
+    "precip_3day_sum": 0.8229,
+    "cloud_cover_day_minus_1": 39.288,
+    "wind_speed_max_3day": 1.4695,
+    "month": 3.631,
+    "is_monsoon_season": 0.4597,
+    "day_of_year": 111.0529,
+    "is_cyclone_season": 0.4376,
+    "vehicle_PSLV": 0.1767,
+    "vehicle_GSLV": 0.126,
+    "vehicle_LVM3": 0.1586,
+    "vehicle_Falcon": 0.2621
+  }
+}

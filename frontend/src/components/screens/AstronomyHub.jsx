@@ -345,7 +345,8 @@ function LaunchesTab() {
 
   useEffect(() => {
     setMounted(true)
-    fetch('http://localhost:8000/api/launch/probability')
+    const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8095'
+    fetch(`${BASE}/api/launch/probability`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setLaunchProb(d) })
       .catch(() => {})

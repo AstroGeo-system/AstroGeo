@@ -1,0 +1,189 @@
+{
+  "data_hash": "b8e325b64857b4dd",
+  "total_rows": 388,
+  "total_columns": 25,
+  "num_features": 17,
+  "target_column": "label",
+  "class_distribution": {
+    "Go_count": 337,
+    "NoGo_count": 51,
+    "Go_pct": 86.86,
+    "NoGo_pct": 13.14,
+    "class_ratio": 6.61
+  },
+  "missing_values": {
+    "cloud_cover_pct": 0,
+    "wind_speed_ms": 0,
+    "precipitation_mm": 0,
+    "temperature_c": 0,
+    "relative_humidity_pct": 0,
+    "surface_pressure_hpa": 0,
+    "precip_3day_sum": 0,
+    "cloud_cover_day_minus_1": 0,
+    "wind_speed_max_3day": 0,
+    "month": 0,
+    "is_monsoon_season": 0,
+    "day_of_year": 0,
+    "is_cyclone_season": 0,
+    "vehicle_PSLV": 0,
+    "vehicle_GSLV": 0,
+    "vehicle_LVM3": 0,
+    "vehicle_Falcon": 0
+  },
+  "total_missing": 0,
+  "feature_stats": {
+    "cloud_cover_pct": {
+      "mean": 57.503,
+      "std": 39.8466,
+      "min": 0.0,
+      "max": 100.0,
+      "median": 69.9112,
+      "skew": -0.2474,
+      "kurtosis": -1.6438
+    },
+    "wind_speed_ms": {
+      "mean": 4.5826,
+      "std": 1.6999,
+      "min": 0.1453,
+      "max": 12.5384,
+      "median": 4.47,
+      "skew": 0.6056,
+      "kurtosis": 2.3017
+    },
+    "precipitation_mm": {
+      "mean": 0.1154,
+      "std": 0.3945,
+      "min": 0.0,
+      "max": 3.0017,
+      "median": 0.0,
+      "skew": 4.8758,
+      "kurtosis": 26.4782
+    },
+    "temperature_c": {
+      "mean": 29.0697,
+      "std": 2.1931,
+      "min": 24.3676,
+      "max": 33.727,
+      "median": 29.1117,
+      "skew": 0.0363,
+      "kurtosis": -1.1432
+    },
+    "relative_humidity_pct": {
+      "mean": 74.7217,
+      "std": 7.0942,
+      "min": 55.3562,
+      "max": 91.815,
+      "median": 75.0453,
+      "skew": -0.2118,
+      "kurtosis": 0.0314
+    },
+    "surface_pressure_hpa": {
+      "mean": 1006.6888,
+      "std": 4.5065,
+      "min": 997.3031,
+      "max": 1015.9519,
+      "median": 1006.6081,
+      "skew": -0.0579,
+      "kurtosis": -1.0885
+    },
+    "precip_3day_sum": {
+      "mean": 0.2932,
+      "std": 0.7808,
+      "min": 0.0,
+      "max": 5.2538,
+      "median": 0.0036,
+      "skew": 3.9812,
+      "kurtosis": 17.8022
+    },
+    "cloud_cover_day_minus_1": {
+      "mean": 55.8507,
+      "std": 39.3113,
+      "min": 0.0,
+      "max": 100.0,
+      "median": 62.323,
+      "skew": -0.1666,
+      "kurtosis": -1.6425
+    },
+    "wind_speed_max_3day": {
+      "mean": 5.5209,
+      "std": 1.4955,
+      "min": 1.7979,
+      "max": 12.5384,
+      "median": 5.4435,
+      "skew": 0.8334,
+      "kurtosis": 2.1832
+    },
+    "month": {
+      "mean": 6.2758,
+      "std": 3.5697,
+      "min": 1.0,
+      "max": 12.0,
+      "median": 6.0,
+      "skew": 0.0543,
+      "kurtosis": -1.2922
+    },
+    "is_monsoon_season": {
+      "mean": 0.3093,
+      "std": 0.4628,
+      "min": 0.0,
+      "max": 1.0,
+      "median": 0.0,
+      "skew": 0.8285,
+      "kurtosis": -1.3204
+    },
+    "day_of_year": {
+      "mean": 176.4768,
+      "std": 109.1794,
+      "min": 3.0,
+      "max": 366.0,
+      "median": 174.0,
+      "skew": 0.0494,
+      "kurtosis": -1.3053
+    },
+    "is_cyclone_season": {
+      "mean": 0.2448,
+      "std": 0.4306,
+      "min": 0.0,
+      "max": 1.0,
+      "median": 0.0,
+      "skew": 1.1914,
+      "kurtosis": -0.5836
+    },
+    "vehicle_PSLV": {
+      "mean": 0.0284,
+      "std": 0.1662,
+      "min": 0.0,
+      "max": 1.0,
+      "median": 0.0,
+      "skew": 5.7056,
+      "kurtosis": 30.7117
+    },
+    "vehicle_GSLV": {
+      "mean": 0.018,
+      "std": 0.1333,
+      "min": 0.0,
+      "max": 1.0,
+      "median": 0.0,
+      "skew": 7.2702,
+      "kurtosis": 51.1187
+    },
+    "vehicle_LVM3": {
+      "mean": 0.0335,
+      "std": 0.1802,
+      "min": 0.0,
+      "max": 1.0,
+      "median": 0.0,
+      "skew": 5.2048,
+      "kurtosis": 25.2201
+    },
+    "vehicle_Falcon": {
+      "mean": 0.0696,
+      "std": 0.2548,
+      "min": 0.0,
+      "max": 1.0,
+      "median": 0.0,
+      "skew": 3.3962,
+      "kurtosis": 9.5836
+    }
+  }
+}

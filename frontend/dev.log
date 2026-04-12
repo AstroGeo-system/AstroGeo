@@ -1,0 +1,10 @@
+
+> astrogeo-frontend@0.0.0 dev
+> next dev -H 0.0.0.0 -p 3000
+
+▲ Next.js 16.2.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+- Environments: .env.local
+✓ Ready in 1379ms
+

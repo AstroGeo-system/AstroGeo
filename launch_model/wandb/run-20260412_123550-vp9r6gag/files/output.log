@@ -1,0 +1,20 @@
+[32m12:35:56[0m | [32m[1mSUCCESS [0m | [36m__main__[0m:[36m<module>[0m:[36m294[0m - [32m[1m[TRACKING] W&B initialized successfully![0m
+Dataset: (388, 17) | Labels -> 1:337 Go, 0:51 No-Go
+[32m12:35:56[0m | [1mINFO    [0m | [36m__main__[0m:[36m<module>[0m:[36m331[0m - [1mDataset: 388 rows, 17 features | Go:337 No-Go:51[0m
+wandb: WARNING Linked 1 file into the W&B run directory (hardlinks); call wandb.save again to sync new files.
+wandb: WARNING Linked 1 file into the W&B run directory (hardlinks); call wandb.save again to sync new files.
+wandb: WARNING Linked 1 file into the W&B run directory (hardlinks); call wandb.save again to sync new files.
+Training ensemble...
+[32m12:36:00[0m | [1mINFO    [0m | [36m__main__[0m:[36m<module>[0m:[36m428[0m - [1mFitting ensemble model...[0m
+[32m12:36:00[0m | [1mINFO    [0m | [36m__main__[0m:[36m<module>[0m:[36m448[0m - [1mEvaluating rf...[0m
+[32m12:36:01[0m | [1mINFO    [0m | [36m__main__[0m:[36m<module>[0m:[36m448[0m - [1mEvaluating lr...[0m
+[32m12:36:02[0m | [1mINFO    [0m | [36m__main__[0m:[36m<module>[0m:[36m448[0m - [1mEvaluating ensemble...[0m
+[32m12:36:03[0m | [32m[1mSUCCESS [0m | [36m__main__[0m:[36m<module>[0m:[36m471[0m - [32m[1mAll metrics computed: 89 total[0m
+2026/04/12 12:36:04 WARNING mlflow.models.model: `artifact_path` is deprecated. Please use `name` instead.
+2026/04/12 12:37:32 WARNING mlflow.sklearn: Saving scikit-learn models in the pickle or cloudpickle format requires exercising caution because these formats rely on Python's object serialization mechanism, which can execute arbitrary code during deserialization. The recommended safe alternative is the 'skops' format. For more information, see: https://scikit-learn.org/stable/model_persistence.html
+Registered model 'astrogeo-launch-go-nogo' already exists. Creating a new version of this model...
+2026/04/12 12:37:46 INFO mlflow.store.model_registry.abstract_store: Waiting up to 300 seconds for model version to finish creation. Model name: astrogeo-launch-go-nogo, version 3
+Created version '3' of model 'astrogeo-launch-go-nogo'.
+wandb: Adding directory to artifact (models)... Done. 0.0s
+Total duration: 125.8s
+[32m12:37:50[0m | [1mINFO    [0m | [36m__main__[0m:[36m<module>[0m:[36m522[0m - [1m=== SCRIPT 04: training DONE ===[0m
