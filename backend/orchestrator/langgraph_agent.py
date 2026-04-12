@@ -9,7 +9,9 @@ from neo4j import GraphDatabase
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# Explicitly load backend/.env since we run from project root
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+load_dotenv(dotenv_path)
 
 # ── Shared state ──────────────────────────────────────────────
 class AstroGeoState(TypedDict):
@@ -17,6 +19,7 @@ class AstroGeoState(TypedDict):
     query_domain:       str
     asteroid_context:   Optional[dict]
     geospatial_context: Optional[dict]
+    solar_context:      Optional[dict]       # ← NEW
     graph_context:      Optional[list]
     final_answer:       Optional[str]
     evidence_chain:     list
@@ -34,6 +37,7 @@ def router_node(state: AstroGeoState) -> AstroGeoState:
     - astronomy  (asteroids, orbits, ISS, space events)
     - geospatial (vegetation, land cover, NDVI, urban growth)
     - agro       (crops, drought, rainfall, food prices)
+    - solar      (solar flares, geomagnetic storms, space weather, GPS disruption, irrigation)
     - cross      (requires multiple domains)
 
     Query: {state['query']}
@@ -42,9 +46,9 @@ def router_node(state: AstroGeoState) -> AstroGeoState:
     """
     response = llm.invoke(prompt)
     domain = response.content.strip().lower()
-    
+
     # Sanitise — fallback to cross if unexpected output
-    if domain not in ('astronomy', 'geospatial', 'agro', 'cross'):
+    if domain not in ('astronomy', 'geospatial', 'agro', 'solar', 'cross'):
         domain = 'cross'
 
     state['query_domain'] = domain
@@ -86,7 +90,7 @@ def astronomy_node(state: AstroGeoState) -> AstroGeoState:
         }
         state['evidence_chain'].append({
             'step':   'astronomy_agent',
-            'source': 'PostgreSQL asteroid_ml_results',
+            'source': 'PostgreSQL asteroid_ml_predictions',
             'rows':   len(df),
         })
         print(f"[Astronomy] Loaded {len(df)} high-risk asteroids")
@@ -99,7 +103,7 @@ def astronomy_node(state: AstroGeoState) -> AstroGeoState:
 
 # ── Node 3: Geospatial Agent ──────────────────────────────────
 def geospatial_node(state: AstroGeoState) -> AstroGeoState:
-    if state['query_domain'] not in ('geospatial', 'cross'):
+    if state['query_domain'] not in ('geospatial', 'cross', 'solar'):
         print("[Geospatial] Skipped — not relevant domain")
         return state
 
@@ -145,17 +149,125 @@ def geospatial_node(state: AstroGeoState) -> AstroGeoState:
 
     return state
 
-# ── Node 4: GraphRAG Node ─────────────────────────────────────
+# ── Node 4: Solar Flare Agent ─────────────────────────────────
+def solar_node(state: AstroGeoState) -> AstroGeoState:
+    """
+    Queries Neo4j for solar events and their disruption risk
+    to Indian agricultural zones. Runs for 'solar' and 'cross'
+    domains. This is the cross-domain bridge:
+    Space Weather → GPS Disruption → Smart Irrigation Failure
+    → Crop Stress in already drought-vulnerable zones.
+    """
+    if state['query_domain'] not in ('solar', 'cross'):
+        print("[Solar] Skipped — not relevant domain")
+        return state
+
+    try:
+        driver = GraphDatabase.driver(
+            os.getenv('NEO4J_URI'),
+            auth=(
+                os.getenv('NEO4J_USERNAME', os.getenv('NEO4J_USER', 'neo4j')),
+                os.getenv('NEO4J_PASSWORD')
+            )
+        )
+
+        with driver.session() as session:
+
+            # 1. Recent high-impact solar events
+            recent_events = session.run("""
+                MATCH (e:SolarEvent)
+                WHERE e.disruption_risk > 0.3
+                RETURN e.date         AS date,
+                       e.event_type   AS type,
+                       e.intensity    AS intensity,
+                       e.kp_index     AS kp_index,
+                       e.disruption_risk AS risk,
+                       e.description  AS description
+                ORDER BY e.disruption_risk DESC
+                LIMIT 5
+            """).data()
+
+            # 2. Cross-domain: solar event → disrupted region
+            #    → vulnerable zone → land cover change
+            cross_domain = session.run("""
+                MATCH (e:SolarEvent)-[:DISRUPTS]->(r:Region)
+                      <-[:PART_OF]-(z:Zone)
+                      -[:SHOWS_CHANGE]->(c:LandCoverChange)
+                WHERE e.disruption_risk > 0.4
+                RETURN e.date           AS event_date,
+                       e.intensity      AS intensity,
+                       e.disruption_risk AS risk,
+                       r.name           AS region,
+                       z.name           AS zone,
+                       c.type           AS land_change,
+                       c.confidence     AS confidence
+                ORDER BY e.disruption_risk DESC, c.confidence DESC
+                LIMIT 5
+            """).data()
+
+            # 3. Storm frequency per region — which regions hit most
+            region_exposure = session.run("""
+                MATCH (e:SolarEvent)-[d:DISRUPTS]->(r:Region)
+                WHERE e.disruption_risk > 0.3
+                RETURN r.name          AS region,
+                       count(e)        AS storm_count,
+                       avg(d.risk_score) AS avg_risk
+                ORDER BY storm_count DESC
+            """).data()
+
+        driver.close()
+
+        state['solar_context'] = {
+            'recent_high_risk_events': recent_events,
+            'cross_domain_impacts':    cross_domain,
+            'most_exposed_regions':    region_exposure[:3],
+            'total_events_found':      len(recent_events),
+        }
+        state['evidence_chain'].append({
+            'step':          'solar_agent',
+            'source':        'Neo4j — SolarEvent nodes (NASA DONKI)',
+            'events_found':  len(recent_events),
+            'cross_impacts': len(cross_domain),
+        })
+        print(f"[Solar] {len(recent_events)} high-risk events, "
+              f"{len(cross_domain)} cross-domain impacts found")
+
+    except Exception as e:
+        print(f"[Solar] Neo4j error: {e}")
+        state['solar_context'] = {'error': str(e)}
+
+    return state
+
+# ── Node 5: GraphRAG Node ─────────────────────────────────────
 def graphrag_node(state: AstroGeoState) -> AstroGeoState:
     try:
         driver = GraphDatabase.driver(
             os.getenv('NEO4J_URI'),
-            auth=(os.getenv('NEO4J_USER'), os.getenv('NEO4J_PASSWORD'))
+            auth=(
+                os.getenv('NEO4J_USERNAME', os.getenv('NEO4J_USER', 'neo4j')),
+                os.getenv('NEO4J_PASSWORD')
+            )
         )
 
         with driver.session() as session:
-            if state['query_domain'] == 'cross':
-                # Multi-hop: asteroids → location → zone → change
+            if state['query_domain'] == 'solar':
+                # Solar-specific multi-hop already handled in solar_node
+                # GraphRAG adds the agriculture connection on top
+                results = session.run("""
+                    MATCH (e:SolarEvent)-[:DISRUPTS]->(r:Region)
+                          <-[:PART_OF]-(z:Zone)
+                    WHERE e.disruption_risk > 0.4
+                    RETURN e.date        AS event_date,
+                           e.intensity   AS solar_intensity,
+                           r.name        AS affected_region,
+                           z.name        AS vulnerable_zone,
+                           e.description AS impact_description
+                    ORDER BY e.disruption_risk DESC
+                    LIMIT 5
+                """).data()
+
+            elif state['query_domain'] == 'cross':
+                # Full multi-hop: asteroids → location → zone → change
                 results = session.run("""
                     MATCH (a:Asteroid)-[:APPROACH_RISK]->(l:Location)
                           <-[:LOCATED_IN]-(z:Zone)
@@ -169,15 +281,17 @@ def graphrag_node(state: AstroGeoState) -> AstroGeoState:
                     ORDER BY c.confidence DESC
                     LIMIT 5
                 """).data()
+
             elif state['query_domain'] == 'astronomy':
                 results = session.run("""
                     MATCH (a:Asteroid)
-                    RETURN a.designation AS asteroid,
+                    RETURN a.designation  AS asteroid,
                            a.risk_category AS risk,
                            a.anomaly_score AS anomaly_score
                     ORDER BY a.anomaly_score DESC
                     LIMIT 5
                 """).data()
+
             else:
                 # geospatial or agro
                 results = session.run("""
@@ -205,7 +319,7 @@ def graphrag_node(state: AstroGeoState) -> AstroGeoState:
 
     return state
 
-# ── Node 5: Synthesiser ───────────────────────────────────────
+# ── Node 6: Synthesiser ───────────────────────────────────────
 def synthesiser_node(state: AstroGeoState) -> AstroGeoState:
     context_parts = []
 
@@ -214,6 +328,9 @@ def synthesiser_node(state: AstroGeoState) -> AstroGeoState:
 
     if state.get('geospatial_context') and 'error' not in state['geospatial_context']:
         context_parts.append(f"Geospatial data: {state['geospatial_context']}")
+
+    if state.get('solar_context') and 'error' not in state['solar_context']:
+        context_parts.append(f"Solar weather data: {state['solar_context']}")
 
     if state.get('graph_context'):
         context_parts.append(f"Cross-domain graph results: {state['graph_context']}")
@@ -224,10 +341,14 @@ def synthesiser_node(state: AstroGeoState) -> AstroGeoState:
 
     prompt = f"""
     You are AstroGeo, a scientific AI assistant specialising in
-    astronomy and Earth observation over India.
+    astronomy, space weather, and Earth observation over India.
 
     Answer the following query using ONLY the provided evidence.
     Be precise, cite specific values, and acknowledge uncertainty.
+
+    When solar/geomagnetic data is present, explain the causal chain:
+    Solar Event → GPS Degradation → Smart Irrigation Disruption
+    → Agricultural Impact in vulnerable zones.
 
     Query: {state['query']}
 
@@ -253,8 +374,10 @@ def route_after_router(state: AstroGeoState) -> str:
         return 'astronomy'
     elif domain == 'geospatial':
         return 'geospatial'
+    elif domain == 'solar':
+        return 'solar'
     else:
-        return 'astronomy'  # cross/agro: run both via sequence
+        return 'astronomy'  # cross: run all via sequence
 
 # ── Build the graph ───────────────────────────────────────────
 def build_astrogeo_graph():
@@ -263,6 +386,7 @@ def build_astrogeo_graph():
     graph.add_node('router',      router_node)
     graph.add_node('astronomy',   astronomy_node)
     graph.add_node('geospatial',  geospatial_node)
+    graph.add_node('solar',       solar_node)       # ← NEW
     graph.add_node('graphrag',    graphrag_node)
     graph.add_node('synthesiser', synthesiser_node)
 
@@ -274,12 +398,14 @@ def build_astrogeo_graph():
         {
             'astronomy':  'astronomy',
             'geospatial': 'geospatial',
+            'solar':      'solar',          # ← NEW
         }
     )
 
-    # All paths flow through geospatial → graphrag → synthesiser
+    # All paths converge into graphrag → synthesiser
     graph.add_edge('astronomy',  'geospatial')
-    graph.add_edge('geospatial', 'graphrag')
+    graph.add_edge('geospatial', 'solar')       # ← NEW: geospatial feeds solar
+    graph.add_edge('solar',      'graphrag')    # ← NEW: solar feeds graphrag
     graph.add_edge('graphrag',   'synthesiser')
     graph.add_edge('synthesiser', END)
 
@@ -294,9 +420,13 @@ def run_query(query: str) -> dict:
 # ── Test ──────────────────────────────────────────────────────
 if __name__ == '__main__':
     test_queries = [
+        # Original 3
         "Which regions in India show the most vegetation loss?",
         "What are the highest risk asteroids right now?",
         "Were any dangerous asteroids approaching India during periods of vegetation stress?",
+        # New solar queries
+        "Did any solar flares disrupt smart irrigation in Maharashtra?",
+        "Which Indian farming regions are most at risk from geomagnetic storms?",
     ]
 
     for query in test_queries:
@@ -304,6 +434,6 @@ if __name__ == '__main__':
         print(f"Query: {query}")
         print('='*60)
         result = run_query(query)
-        print(f"\nDomain:          {result['query_domain']}")
+        print(f"\nDomain:         {result['query_domain']}")
         print(f"Answer:\n{result['final_answer']}")
-        print(f"Evidence steps:  {len(result['evidence_chain'])}")
+        print(f"Evidence steps: {len(result['evidence_chain'])}")

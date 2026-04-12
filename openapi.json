@@ -1,0 +1,1051 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AstroGeo API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/iss/position": {
+      "get": {
+        "tags": [
+          "ISS Tracking"
+        ],
+        "summary": "Get Iss Position",
+        "description": "Get current ISS position (live from Open-Notify).",
+        "operationId": "get_iss_position_api_v1_iss_position_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/iss/passes": {
+      "get": {
+        "tags": [
+          "ISS Tracking"
+        ],
+        "summary": "Get Iss Passes",
+        "description": "Get upcoming ISS pass predictions for a location.\n\n- Tries N2YO live API first (fresh data)\n- Falls back to PostgreSQL cache if live fails\n\nResponse includes:\n  - passes: list of upcoming passes\n  - data_source: \"live\" | \"cached\" | \"unavailable\"",
+        "operationId": "get_iss_passes_api_v1_iss_passes_get",
+        "parameters": [
+          {
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "title": "Lat"
+            }
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "title": "Lon"
+            }
+          },
+          {
+            "name": "passes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 5,
+              "title": "Passes"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asteroids/close-approaches": {
+      "get": {
+        "tags": [
+          "Asteroids"
+        ],
+        "summary": "Get Close Approaches",
+        "description": "Get asteroid close approaches\n\n- **start_date**: Start date (YYYY-MM-DD), defaults to today\n- **end_date**: End date (YYYY-MM-DD), defaults to start_date + 7 days\n- **distance_max_au**: Filter asteroids closer than this distance\n- **limit**: Max results to return",
+        "operationId": "get_close_approaches_api_v1_asteroids_close_approaches_get",
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start Date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End Date"
+            }
+          },
+          {
+            "name": "distance_max_au",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Max distance in AU",
+              "title": "Distance Max Au"
+            },
+            "description": "Max distance in AU"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asteroids/{asteroid_id}": {
+      "get": {
+        "tags": [
+          "Asteroids"
+        ],
+        "summary": "Get Asteroid Detail",
+        "description": "Get detailed information about specific asteroid",
+        "operationId": "get_asteroid_detail_api_v1_asteroids__asteroid_id__get",
+        "parameters": [
+          {
+            "name": "asteroid_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Asteroid Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/query": {
+      "post": {
+        "summary": "Query Agent",
+        "operationId": "query_agent_query_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/graph/query": {
+      "post": {
+        "summary": "Graph Query",
+        "description": "Natural language cross-domain query endpoint.\nRoutes through LangGraph: Router \u2192 Domain Agents \u2192 GraphRAG \u2192 Synthesiser.\nSupports astronomy, geospatial, solar weather, and cross-domain queries.",
+        "operationId": "graph_query_api_graph_query_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphQueryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphQueryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/verify/model-cards": {
+      "get": {
+        "summary": "List Model Cards",
+        "description": "Returns available model cards for the Verify UI.",
+        "operationId": "list_model_cards_api_verify_model_cards_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/verify/{prediction_id}": {
+      "get": {
+        "summary": "Verify Prediction",
+        "description": "Fetches a single asteroid prediction and verifies its SHA-256 hash.\nPowers the Verify Predictions page in the Streamlit POC.",
+        "operationId": "verify_prediction_api_verify__prediction_id__get",
+        "parameters": [
+          {
+            "name": "prediction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Prediction Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/earth/ndvi/{zone}": {
+      "get": {
+        "summary": "Get Ndvi Zone",
+        "description": "Returns NDVI statistics for a specific zone and year.\nPowers the Vegetation tab on the Earth page.",
+        "operationId": "get_ndvi_zone_api_earth_ndvi__zone__get",
+        "parameters": [
+          {
+            "name": "zone",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Zone"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": 2024,
+              "title": "Year"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/earth/change/{zone}": {
+      "get": {
+        "summary": "Get Land Change",
+        "description": "Returns land cover change timeline for a zone (2018\u20132024).\nPowers the Urban + Vegetation change charts.",
+        "operationId": "get_land_change_api_earth_change__zone__get",
+        "parameters": [
+          {
+            "name": "zone",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Zone"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/earth/live/{zone}/{year}": {
+      "get": {
+        "summary": "Get Live Ndvi",
+        "description": "Returns live or cached NDVI for a zone/year combination.\nChecks PostgreSQL cache first (7-day TTL).\nPowers the live 2025/2026 GEE integration.",
+        "operationId": "get_live_ndvi_api_earth_live__zone___year__get",
+        "parameters": [
+          {
+            "name": "zone",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Zone"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/earth/aoi": {
+      "post": {
+        "summary": "Create Aoi",
+        "description": "Saves a custom Area of Interest for a user.\nBody: {name, geometry, user_id}",
+        "operationId": "create_aoi_api_earth_aoi_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Aoi"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/earth/aoi/{aoi_id}": {
+      "get": {
+        "summary": "Get Aoi",
+        "operationId": "get_aoi_api_earth_aoi__aoi_id__get",
+        "parameters": [
+          {
+            "name": "aoi_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Aoi Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Aoi",
+        "operationId": "delete_aoi_api_earth_aoi__aoi_id__delete",
+        "parameters": [
+          {
+            "name": "aoi_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Aoi Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agro/drought/{district}": {
+      "get": {
+        "summary": "Get Drought",
+        "description": "Returns drought composite index for a district.\nCombines NDVI delta + precipitation anomaly.\nCurrently returns model-based estimates (Agro agent in beta).",
+        "operationId": "get_drought_api_agro_drought__district__get",
+        "parameters": [
+          {
+            "name": "district",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "District"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agro/yield/{crop}/{district}": {
+      "get": {
+        "summary": "Get Yield Prediction",
+        "description": "Returns predicted crop yield for next season.\nMock response \u2014 LSTM model in beta.",
+        "operationId": "get_yield_prediction_api_agro_yield__crop___district__get",
+        "parameters": [
+          {
+            "name": "crop",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Crop"
+            }
+          },
+          {
+            "name": "district",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "District"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agro/prices/{market}": {
+      "get": {
+        "summary": "Get Market Prices",
+        "description": "Returns crop prices for a market.\nMock response \u2014 AGMARKNET scraper in beta.",
+        "operationId": "get_market_prices_api_agro_prices__market__get",
+        "parameters": [
+          {
+            "name": "market",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Market"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/launch/probability": {
+      "get": {
+        "summary": "Get Launch Probability",
+        "description": "Returns current launch probability for next ISRO mission.\nUses today's ERA5-equivalent weather + trained model.\nPowers the AI Launch Probability gauge on the ISRO page.",
+        "operationId": "get_launch_probability_api_launch_probability_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/launch/schedule": {
+      "get": {
+        "summary": "Get Launch Schedule",
+        "description": "Returns upcoming ISRO launch schedule.\nPowers the Launch Schedule table and countdown on ISRO page.",
+        "operationId": "get_launch_schedule_api_launch_schedule_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/verify/batch/recent": {
+      "get": {
+        "summary": "Verify Recent Predictions",
+        "description": "Verifies the N highest-risk predictions in bulk.\nPowers the Recent Predictions list in the Verify UI.",
+        "operationId": "verify_recent_predictions_api_verify_batch_recent_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchVerificationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BatchVerificationResult": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "verified": {
+            "type": "integer",
+            "title": "Verified"
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed"
+          },
+          "results": {
+            "items": {},
+            "type": "array",
+            "title": "Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "verified",
+          "failed",
+          "results"
+        ],
+        "title": "BatchVerificationResult"
+      },
+      "GraphQueryRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "include_evidence": {
+            "type": "boolean",
+            "title": "Include Evidence",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "GraphQueryRequest"
+      },
+      "GraphQueryResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "evidence_chain": {
+            "items": {},
+            "type": "array",
+            "title": "Evidence Chain"
+          },
+          "processing_time_ms": {
+            "type": "integer",
+            "title": "Processing Time Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "domain",
+          "answer",
+          "evidence_chain",
+          "processing_time_ms"
+        ],
+        "title": "GraphQueryResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "QueryRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "default": "Mumbai, India"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "QueryRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VerificationResult": {
+        "properties": {
+          "prediction_id": {
+            "type": "string",
+            "title": "Prediction Id"
+          },
+          "asteroid_id": {
+            "type": "string",
+            "title": "Asteroid Id"
+          },
+          "verification_hash": {
+            "type": "string",
+            "title": "Verification Hash"
+          },
+          "hash_valid": {
+            "type": "boolean",
+            "title": "Hash Valid"
+          },
+          "risk_category": {
+            "type": "string",
+            "title": "Risk Category"
+          },
+          "anomaly_score": {
+            "type": "number",
+            "title": "Anomaly Score"
+          },
+          "is_anomaly": {
+            "type": "boolean",
+            "title": "Is Anomaly"
+          },
+          "cluster": {
+            "type": "integer",
+            "title": "Cluster"
+          },
+          "improved_risk_score": {
+            "type": "number",
+            "title": "Improved Risk Score"
+          },
+          "evidence_chain": {
+            "items": {},
+            "type": "array",
+            "title": "Evidence Chain"
+          },
+          "verification_status": {
+            "type": "string",
+            "title": "Verification Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prediction_id",
+          "asteroid_id",
+          "verification_hash",
+          "hash_valid",
+          "risk_category",
+          "anomaly_score",
+          "is_anomaly",
+          "cluster",
+          "improved_risk_score",
+          "evidence_chain",
+          "verification_status"
+        ],
+        "title": "VerificationResult"
+      }
+    }
+  }
+}

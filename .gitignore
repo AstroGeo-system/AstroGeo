@@ -26,3 +26,15 @@ launch_model/logs/
 launch_model/*.db
 launch_model/mlflow.db
 launch_model/metrics/*.json
+
+# --- [DATA] Remote changes ---
+data/
+*.nc
+*.pkl
+*.csv
+.ipynb_checkpoints/
+data/shap/
+data/models/
+data/launches/
+data/era5/
+
