@@ -208,12 +208,29 @@ class AstronomyAgent:
         windows = self.get_best_viewing_window(location)
         passes = self.get_satellite_passes(location)
         
+        # Pull real asteroid risk metrics from PostgreSQL ML predictions
+        risk_metrics = {'level': 'Low', 'high_risk_count': 0, 'top_asteroid': None}
+        try:
+            high_risk = self.asteroid_monitor.get_high_risk_asteroids(min_risk_score=50)
+            if high_risk:
+                top = high_risk[0]
+                score = top.get('improved_risk_score', 0)
+                risk_metrics = {
+                    'level': 'High' if score >= 75 else 'Moderate' if score >= 50 else 'Low',
+                    'high_risk_count': len(high_risk),
+                    'top_asteroid': top.get('asteroid_id'),
+                    'top_score': round(score, 2),
+                    'top_category': top.get('adaptive_risk_category', 'Unknown'),
+                }
+        except Exception:
+            pass  # Graceful fallback — keep default Low
+
         plan = {
             'location': location,
             'current_weather': conditions,
             'best_viewing_windows': windows,
             'satellite_passes': passes[:5],  # Top 5
-            'risk_metrics': 'Low'  # Placeholder
+            'risk_metrics': risk_metrics,
         }
         
         if welcome_msg:

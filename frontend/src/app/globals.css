@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --astro-bg: #0a0a0a;
+  --astro-primary: #0b3d91;
+  --astro-secondary: #ff6b35;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
+  background: var(--astro-bg);
+  color: #f1f5f9;
+}
+
+/* Moving stars layer */
+.stars-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #0a0a0a;
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 60% 70%, rgba(255, 255, 255, 0.25), transparent),
+    radial-gradient(1px 1px at 50% 50%, rgba(255, 255, 255, 0.2), transparent),
+    radial-gradient(2px 2px at 80% 10%, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(1px 1px at 90% 60%, rgba(255, 255, 255, 0.22), transparent);
+  background-size: 200% 200%;
+  animation: stars-shift 120s linear infinite;
+}
+
+.nebula-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(11, 61, 145, 0.22), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 85% 100%, rgba(255, 107, 53, 0.08), transparent 50%),
+    linear-gradient(180deg, rgba(10, 10, 10, 0.3) 0%, rgba(10, 10, 10, 0.92) 100%);
+}
+
+@keyframes stars-shift {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+.glass {
+  @apply bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-xl;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+.glass-hover {
+  @apply transition-all duration-300 hover:bg-white/[0.08] hover:border-white/15;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(11, 61, 145, 0.45);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 53, 0.35);
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(255, 255, 255, 0.06);
+}
+.recharts-text {
+  fill: #94a3b8;
+  font-size: 12px;
+}
+
+.font-mono-ui {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
