@@ -1,2 +1,5 @@
 [core]
     no_scm = True
+    remote = origin
+['remote "origin"']
+    url = https://dagshub.com/anushkamali-2005/astro_geo.dvc

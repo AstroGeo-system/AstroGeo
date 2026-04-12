@@ -1,0 +1,14 @@
+Classification Report — RF
+==================================================
+              precision    recall  f1-score   support
+
+           0       1.00      0.40      0.57        10
+           1       0.92      1.00      0.96        68
+
+    accuracy                           0.92        78
+   macro avg       0.96      0.70      0.76        78
+weighted avg       0.93      0.92      0.91        78
+
+Confusion Matrix:
+[[ 4  6]
+ [ 0 68]]

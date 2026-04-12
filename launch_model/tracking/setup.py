@@ -30,21 +30,29 @@ def init_tracking(run_name: str, experiment_name: str = "astrogeo-launch-model")
         from contextlib import nullcontext
         return nullcontext()
 
+    username = os.environ["DAGSHUB_USERNAME"]
+    repo = os.environ["DAGSHUB_REPO"]
+    token = os.environ.get("DAGSHUB_TOKEN", "")
+
+    tracking_uri = f"https://dagshub.com/{username}/{repo}.mlflow"
+    os.environ["MLFLOW_TRACKING_URI"] = tracking_uri
+    os.environ["MLFLOW_TRACKING_USERNAME"] = username
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = token
+
+    mlflow.set_tracking_uri(tracking_uri)
+
     try:
         import dagshub
         dagshub.init(
-            repo_owner=os.environ["DAGSHUB_USERNAME"],
-            repo_name=os.environ["DAGSHUB_REPO"],
+            repo_owner=username,
+            repo_name=repo,
             mlflow=True,
         )
-    except KeyError as e:
-        raise EnvironmentError(
-            f"Missing required environment variable: {e}. "
-            "Set DAGSHUB_USERNAME and DAGSHUB_REPO (see .env.example)."
-        ) from e
     except Exception as e:
-        # Non-fatal: fall back to local MLflow tracking
-        print(f"[TRACKING] DagsHub init failed, using local tracking: {e}")
+        # dagshub.init() may fail on Windows (charmap codec) — not fatal
+        # since we already set the tracking URI directly above
+        print(f"[TRACKING] dagshub.init() skipped (URI already set): {e}")
+
 
     mlflow.set_experiment(experiment_name)
 

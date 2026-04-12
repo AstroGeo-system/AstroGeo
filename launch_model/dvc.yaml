@@ -69,3 +69,12 @@ stages:
       - models/shap_explainer.pkl
       - models/feature_cols.json
       - data/training_data.csv
+
+  monitoring:
+    cmd: python monitoring/drift_detector.py
+    deps:
+      - monitoring/drift_detector.py
+      - data/training_data.csv
+    outs:
+      - metrics/drift_report.html
+      - metrics/drift_summary.json

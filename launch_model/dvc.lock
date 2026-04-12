@@ -1,0 +1,14 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python 01_scrape_launches.py
+    deps:
+    - path: 01_scrape_launches.py
+      hash: md5
+      md5: 7643982218b7d5f643a19b0dcf8df63c
+      size: 6442
+    outs:
+    - path: data/isro_launches_raw.csv
+      hash: md5
+      md5: f053d5017d4dd0a331a9b4608726dd79
+      size: 353342
