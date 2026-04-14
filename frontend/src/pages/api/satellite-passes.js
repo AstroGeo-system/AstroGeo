@@ -10,13 +10,24 @@ export default async function handler(req, res) {
   }
 
   try {
-    const apiKey = 'api key'
+    const apiKey = process.env.N2YO_API_KEY || 'dummy_key'
     const url = `https://api.n2yo.com/rest/v1/satellite/visualpasses/${satId}/${lat}/${lng}/${alt}/${days}/${minElevation}?apiKey=${apiKey}`
     const response = await fetch(url)
-    const data = await response.json()
+    const text = await response.text()
+    
+    let data;
+    try {
+      data = JSON.parse(text)
+    } catch (e) {
+      return res.status(503).json({ error: 'N2YO API unavailable', detail: 'Received invalid response from N2YO.' })
+    }
+
+    if (data.error) {
+      return res.status(503).json({ error: 'N2YO API unavailable', detail: data.error })
+    }
 
     res.status(200).json(data)
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch data' })
+    res.status(503).json({ error: 'N2YO API unavailable', detail: error.message })
   }
 }

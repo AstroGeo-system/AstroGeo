@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css'
 export default function LeafletMap({ 
   zone, 
   metricValue, 
+  allMetrics,
   mode, 
   className,
   geoJsonData
@@ -13,41 +14,64 @@ export default function LeafletMap({
 
   // Force map invalidation on load to fix rendering issues
   useEffect(() => {
+    let timer;
     if (map) {
-      setTimeout(() => {
-        map.invalidateSize()
-      }, 250)
+      timer = setTimeout(() => {
+        // Ensure map is still valid and has its container before invalidating
+        if (map && typeof map.invalidateSize === 'function') {
+            try {
+                map.invalidateSize()
+            } catch (e) {
+                console.warn('Map resize failed during transition:', e)
+            }
+        }
+      }, 500)
     }
+    return () => { if (timer) clearTimeout(timer) }
   }, [map, geoJsonData])
 
   const getColor = (stateName) => {
-    if (!stateName || !zone) return '#1e293b'
+    if (!stateName) return '#1e293b'
     
-    // Check if state matches selected zone/district
-    if (stateName.toLowerCase().includes(zone.toLowerCase()) || zone.toLowerCase().includes(stateName.toLowerCase())) {
-        if (mode === 'vegetation') {
-             if (metricValue == null) return '#3b82f6'
-             if (metricValue > 0.6) return '#22c55e' // Green
-             if (metricValue >= 0.3) return '#eab308' // Yellow
-             return '#ef4444' // Red
-        } else if (mode === 'drought') {
-             if (metricValue == null) return '#3b82f6'
-             if (metricValue > 0.7) return '#ef4444' // Severe
-             if (metricValue > 0.4) return '#f97316' // Moderate
-             if (metricValue > 0.2) return '#eab308' // Mild
-             return '#10b981' // None
-        }
+    // Check if state has data in allMetrics
+    let val = metricValue;
+    if (allMetrics) {
+      // Find matching key in allMetrics
+      const match = Object.keys(allMetrics).find(z => stateName.toLowerCase().includes(z.toLowerCase()) || z.toLowerCase().includes(stateName.toLowerCase()))
+      if (match) val = allMetrics[match]
+      else val = null
+    } else {
+      // Fallback to original logic if no allMetrics provided
+      if (!(stateName.toLowerCase().includes(zone.toLowerCase()) || zone.toLowerCase().includes(stateName.toLowerCase()))) {
+        return '#1e293b'
+      }
     }
+
+    if (val == null) return '#1e293b'
+
+    if (mode === 'vegetation') {
+         if (val > 0.6) return '#22c55e' // Green
+         if (val >= 0.3) return '#eab308' // Yellow
+         return '#ef4444' // Red
+    } else if (mode === 'drought') {
+         if (val > 0.7) return '#ef4444' // Severe
+         if (val > 0.4) return '#f97316' // Moderate
+         if (val > 0.2) return '#eab308' // Mild
+         return '#10b981' // None
+    }
+    
     return '#1e293b'
   }
 
   const style = (feature) => {
+    const isSelected = feature.properties.NAME_1.toLowerCase().includes(zone.toLowerCase()) || zone.toLowerCase().includes(feature.properties.NAME_1.toLowerCase())
+    
     return {
       fillColor: getColor(feature.properties.NAME_1),
-      weight: 1,
+      weight: isSelected ? 3 : 1,
       opacity: 1,
-      color: '#334155',
-      fillOpacity: 0.8
+      color: isSelected ? '#ffffff' : '#334155',
+      fillOpacity: isSelected ? 0.9 : 0.6
     }
   }
 

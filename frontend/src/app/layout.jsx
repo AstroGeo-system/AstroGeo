@@ -1,6 +1,7 @@
 import './globals.css'
 import { AppShellProvider } from '@/components/providers/AppShellProvider'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
+import ChatWidget from '@/components/ChatWidget'
 
 export const metadata = {
   title: 'AstroGeo — Space Intelligence',
@@ -18,8 +19,11 @@ export default function RootLayout({ children }) {
             <DashboardLayout>{children}</DashboardLayout>
           </div>
         </AppShellProvider>
+        {/* Floating AI chat widget — present on all pages */}
+        <ChatWidget />
       </body>
     </html>
   )
 }
+
 

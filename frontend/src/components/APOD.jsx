@@ -21,10 +21,16 @@ export default function APOD() {
       const response = await fetch(
         `https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY}`
       );
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("NASA API Rate Limit Exceeded (DEMO_KEY)");
+        }
+        throw new Error(`NASA API Service Error: ${response.status}`);
+      }
       const data = await response.json();
       setApod(data);
     } catch (err) {
-      setError("Failed to fetch APOD");
+      setError(err.message || "Failed to fetch APOD");
       console.error(err);
     } finally {
       setLoading(false);

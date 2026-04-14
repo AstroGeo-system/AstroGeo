@@ -45,6 +45,7 @@ function VegetationTab({ geoData }) {
   const [year,     setYear]     = useState('2026 Live')
   const [ndviData, setNdviData] = useState(null)
   const [change,   setChange]   = useState(null)
+  const [allMetrics, setAllMetrics] = useState({})
   const [loading,  setLoading]  = useState(false)
 
   const YEARS = ['2026 Live', '2025', '2024', '2023', '2022', '2021']
@@ -56,12 +57,26 @@ function VegetationTab({ geoData }) {
           ? api.getLiveNDVI(zone, activeYear) 
           : api.getNDVI(zone, activeYear)
 
+    const allNdviPromises = ZONES.map(z => 
+          year === '2026 Live' ? api.getLiveNDVI(z, activeYear) : api.getNDVI(z, activeYear)
+    )
+
     Promise.all([
       ndviPromise,
       api.getChange(zone),
-    ]).then(([ndvi, changeData]) => {
+      Promise.all(allNdviPromises)
+    ]).then(([ndvi, changeData, allNdviRes]) => {
       setNdviData(ndvi)
       setChange(changeData)
+      
+      const metricsObj = {}
+      allNdviRes.forEach((res, idx) => {
+         if (res?.summary?.mean_ndvi != null) {
+            metricsObj[ZONES[idx]] = res.summary.mean_ndvi
+         }
+      })
+      setAllMetrics(metricsObj)
+      
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [zone, year])
@@ -109,6 +124,7 @@ function VegetationTab({ geoData }) {
              <MapComponent 
                  className="w-full h-full absolute inset-0 rounded-xl"
                  zone={zone}
+                 allMetrics={allMetrics}
                  metricValue={ndviData?.summary?.mean_ndvi}
                  mode="vegetation"
                  geoJsonData={geoData}
@@ -187,8 +203,8 @@ function VegetationTab({ geoData }) {
                       <div className="text-sm font-bold text-indigo-400 mb-2 flex items-center gap-2">🤖 ZONE BREAKDOWN</div>
                       <div className="space-y-2">
                         {latestChanges.map((z, i) => (
-                          <div key={i} className="flex justify-between text-xs">
-                            <span className="text-slate-300">{z.zone_name}</span>
+                          <div key={i} className="flex flex-col gap-1 text-xs px-3 py-2 bg-slate-800/60 rounded border border-slate-700/50">
+                            <span className="text-white font-bold">{z.zone_name}</span>
                             <span className={z.change_class === 'vegetation_loss' ? 'text-red-400 font-bold' : 'text-emerald-400'}>
                               {z.change_class?.replace(/_/g, ' ')}
                               {z.confidence != null ? ` (${(z.confidence * 100).toFixed(0)}%)` : ''}

@@ -64,6 +64,9 @@ export const api = {
   // ── Launch ────────────────────────────────────────────────
   getLaunchProb:     () => get('/api/launch/probability'),
   getLaunchSchedule: () => get('/api/launch/schedule'),
+  
+  // ── ISRO tracker ──────────────────────────────────────────
+  getIsroFleet:      () => get('/api/isro/fleet'),
 
   // ── GraphRAG ──────────────────────────────────────────────
   query: (q) =>
@@ -73,4 +76,12 @@ export const api = {
   verify:        (id)     => get(`/api/verify/${id}`),
   verifyBatch:   (n = 10) => get(`/api/verify/batch/recent?limit=${n}`),
   getModelCards: ()       => get('/api/verify/model-cards'),
+
+  // ── Solar Risk & Events ───────────────────────────────────
+  getSolarRisk:   () => get('/api/launch/solar-risk'),
+  getSolarEvents: () => get('/api/v1/donki/events'),
+
+  // ── Chat (OpenAI proxy) ───────────────────────────────────
+  chat: (messages, user_query) =>
+    post('/api/chat', { messages, user_query }),
 }
