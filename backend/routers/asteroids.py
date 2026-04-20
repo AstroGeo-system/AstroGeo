@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Query
-from typing import Optional
 from datetime import datetime, timedelta
+from typing import Optional
+
+import httpx
+from fastapi import APIRouter, HTTPException, Query
 from backend.services.external.nasa_service import nasa_service
 
 router = APIRouter(prefix="/api/v1/asteroids", tags=["Asteroids"])

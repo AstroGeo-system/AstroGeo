@@ -22,6 +22,7 @@ async function post(path, body) {
       body:    JSON.stringify(body),
       cache:   'no-store',
     })
+    if (!res.ok) return null
     return res.json()
   } catch (e) {
     console.warn(`[API] POST ${path} failed:`, e.message)

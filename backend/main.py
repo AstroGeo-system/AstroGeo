@@ -99,6 +99,20 @@ app.include_router(asteroids.router)
 app.include_router(donki.router, prefix="/api/v1/donki")
 app.include_router(eonet.router)
 
+
+def _self_base_url() -> str:
+    """
+    Base URL for this same API service.
+
+    Used by the chat endpoint to pre-fetch "live" data via HTTP without hardcoding
+    localhost:8000 (Render uses $PORT).
+    """
+    explicit = os.getenv("SELF_BASE_URL")
+    if explicit:
+        return explicit.rstrip("/")
+    port = os.getenv("PORT", "8000")
+    return f"http://127.0.0.1:{port}"
+
 # ── Missing /api/asteroids/alerts endpoint (expected by frontend) ──
 @app.get("/api/asteroids/alerts")
 async def asteroids_alerts():
@@ -112,6 +126,96 @@ async def asteroids_alerts():
         "total": 3,
         "source": "NASA CNEOS (cached)"
     }
+
+
+@app.get("/api/asteroids/anomalies")
+async def asteroid_anomalies(limit: int = 25):
+    """
+    Returns top anomalous asteroids for the frontend dashboard.
+    Uses Neo4j when available; falls back to mock results for demo resilience.
+    """
+    try:
+        driver = get_neo4j_driver()
+        with driver.session(database=os.getenv("NEO4J_DATABASE")) as session:
+            rows = session.run(
+                """
+                MATCH (a:Asteroid)
+                WHERE coalesce(a.is_anomaly, false) = true
+                RETURN a.designation AS designation,
+                       a.risk_category AS risk_category,
+                       a.risk_score AS improved_risk_score,
+                       a.anomaly_score AS anomaly_score,
+                       a.cluster AS cluster
+                ORDER BY a.risk_score DESC
+                LIMIT $limit
+                """,
+                {"limit": int(limit)},
+            ).data()
+        return {"data": rows, "count": len(rows), "source": "neo4j"}
+    except Exception:
+        mock = [
+            {"designation": "2024 BX1", "risk_category": "High", "improved_risk_score": 78.4, "anomaly_score": 0.91, "cluster": 2},
+            {"designation": "2024 YR4", "risk_category": "Medium", "improved_risk_score": 52.1, "anomaly_score": 0.41, "cluster": 1},
+            {"designation": "99942", "risk_category": "Watch", "improved_risk_score": 45.8, "anomaly_score": 0.18, "cluster": 0},
+        ]
+        return {"data": mock[: int(limit)], "count": min(int(limit), len(mock)), "source": "mock"}
+
+
+@app.get("/api/asteroids/clusters")
+async def asteroid_clusters(limit: int = 200):
+    """
+    Returns clustered asteroid points (for UI plots).
+    """
+    try:
+        driver = get_neo4j_driver()
+        with driver.session(database=os.getenv("NEO4J_DATABASE")) as session:
+            rows = session.run(
+                """
+                MATCH (a:Asteroid)
+                WHERE a.cluster IS NOT NULL
+                RETURN a.designation AS designation,
+                       a.cluster AS cluster,
+                       a.risk_score AS improved_risk_score,
+                       a.risk_category AS risk_category,
+                       a.anomaly_score AS anomaly_score
+                ORDER BY a.risk_score DESC
+                LIMIT $limit
+                """,
+                {"limit": int(limit)},
+            ).data()
+        return {"data": rows, "count": len(rows), "source": "neo4j"}
+    except Exception:
+        mock = [
+            {"designation": "2024 BX1", "cluster": 2, "improved_risk_score": 78.4, "risk_category": "High", "anomaly_score": 0.91},
+            {"designation": "2024 YR4", "cluster": 1, "improved_risk_score": 52.1, "risk_category": "Medium", "anomaly_score": 0.41},
+            {"designation": "99942", "cluster": 0, "improved_risk_score": 45.8, "risk_category": "Watch", "anomaly_score": 0.18},
+        ]
+        return {"data": mock[: int(limit)], "count": min(int(limit), len(mock)), "source": "mock"}
+
+
+@app.get("/api/launch/solar-risk")
+async def solar_risk():
+    """
+    Lightweight solar comms risk signal for the launch UI.
+    Derived from DONKI feed (CSV) when present; otherwise returns a safe default.
+    """
+    try:
+        d = donki.get_donki_data()
+        recent = d.get("recent_feed", []) or []
+        x_or_kp9 = [
+            e
+            for e in recent
+            if str(e.get("intensity", "")).upper().startswith("X")
+            or "KP9" in str(e.get("intensity", "")).upper()
+        ]
+        risk_level = "ELEVATED" if len(x_or_kp9) >= 1 else "NOMINAL"
+        return {
+            "risk_level": risk_level,
+            "signals_last_10": len(x_or_kp9),
+            "note": "Heuristic signal based on recent DONKI events.",
+        }
+    except Exception:
+        return {"risk_level": "NOMINAL", "signals_last_10": 0, "note": "DONKI feed unavailable"}
 
 from typing import Optional
 
@@ -804,12 +908,23 @@ def get_launch_model():
             os.path.dirname(__file__), '..', 'data', 'models', 'launch'
         )
         try:
-            _launch_model  = joblib.load(
-                os.path.join(model_dir, 'launch_model.pkl')
+            # Support both naming conventions:
+            # - legacy: launch_model.pkl / launch_scaler.pkl
+            # - current training artifacts: ensemble.pkl / scaler.pkl (in launch_model/models)
+            model_path_candidates = ["launch_model.pkl", "ensemble.pkl"]
+            scaler_path_candidates = ["launch_scaler.pkl", "scaler.pkl"]
+
+            model_path = next(
+                (os.path.join(model_dir, p) for p in model_path_candidates if os.path.exists(os.path.join(model_dir, p))),
+                os.path.join(model_dir, model_path_candidates[0]),
             )
-            _launch_scaler = joblib.load(
-                os.path.join(model_dir, 'launch_scaler.pkl')
+            scaler_path = next(
+                (os.path.join(model_dir, p) for p in scaler_path_candidates if os.path.exists(os.path.join(model_dir, p))),
+                os.path.join(model_dir, scaler_path_candidates[0]),
             )
+
+            _launch_model = joblib.load(model_path)
+            _launch_scaler = joblib.load(scaler_path)
             print("[Launch] Model loaded successfully")
         except Exception as e:
             print(f"[Launch] Model not found at {model_dir}: {e}")
@@ -1197,7 +1312,7 @@ def _fetch_live_data_for_query(query: str) -> tuple[str, list]:
     query_lower = query.lower()
     context_parts = []
     sources = []
-    base = "http://localhost:8000"
+    base = _self_base_url()
 
     now_ist = datetime.now().strftime("%H:%M IST")
 

@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import SatellitePassPredictor from '@/components/SatellitePassPredictor'
 import { useAppShell } from '@/components/providers/AppShellProvider'
+import { api } from '@/lib/api'
 
 const GlobeHero = dynamic(
   () => import('@/components/GlobeHero'),
@@ -718,16 +719,23 @@ function SunTab() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/v1/donki/events')
-      .then(r => r.json())
-      .then(d => {
-        setData(d)
+    let cancelled = false
+    api.getSolarEvents()
+      .then((d) => {
+        if (cancelled) return
+        setData(d || { live_status: null, recent_feed: [], timeline: [], isro_impacts: [] })
+      })
+      .catch(() => {
+        if (cancelled) return
+        setData({ live_status: null, recent_feed: [], timeline: [], isro_impacts: [] })
+      })
+      .finally(() => {
+        if (cancelled) return
         setLoading(false)
       })
-      .catch(e => {
-        console.error(e)
-        setLoading(false)
-      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   if (loading) return <div className="text-center py-20 text-slate-400">Syncing with NASA DONKI...</div>

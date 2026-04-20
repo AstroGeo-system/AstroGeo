@@ -16,6 +16,7 @@ sqlalchemy
 pydantic
 pydantic-settings
 python-dotenv
+openai
 joblib
 scikit-learn
 numpy

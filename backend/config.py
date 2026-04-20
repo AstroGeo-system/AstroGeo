@@ -3,12 +3,10 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # External API keys
-    NASA_API_KEY: str
-    COPERNICUS_CLIENT_ID: str
-    NASA_API_KEY: str
-    COPERNICUS_CLIENT_ID: str
-    COPERNICUS_CLIENT_SECRET: str
-    N2YO_API_KEY: str
+    NASA_API_KEY: str = "DEMO_KEY"
+    COPERNICUS_CLIENT_ID: str = ""
+    COPERNICUS_CLIENT_SECRET: str = ""
+    N2YO_API_KEY: str = ""
     
     # API settings
     API_TITLE: str = "AstroGeo API"
@@ -23,8 +21,8 @@ class Settings(BaseSettings):
     DB_HOST: str = "localhost"
     DB_PORT: str = "5432"
     DB_NAME: str = "astrogeo_db"
-    DB_USER: str = "khushikhanna"
-    DB_PASSWORD: str
+    DB_USER: str = ""
+    DB_PASSWORD: str = ""
     DB_SCHEMA: str = "public"
 
     @property

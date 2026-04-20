@@ -221,7 +221,10 @@ function VegetationTab({ geoData }) {
                   <div className="text-center p-6 border border-slate-700/50 rounded-xl bg-slate-900/60 w-full">
                      <div className="text-4xl mb-4">📡</div>
                      <h3 className="text-lg font-bold text-slate-300 mb-2">Awaiting Live Connection</h3>
-                     <p className="text-sm text-slate-400 mb-4">Please ensure your AI backend is running on <code className="bg-black/30 px-2 py-1 rounded">localhost:8000</code> to view the {year} data stream.</p>
+                     <p className="text-sm text-slate-400 mb-4">
+                       Ensure your AI backend is running and the frontend is configured with{' '}
+                       <code className="bg-black/30 px-2 py-1 rounded">NEXT_PUBLIC_API_URL</code> to view the {year} data stream.
+                     </p>
                      <p className="text-xs text-slate-500">The map will automatically populate once connected.</p>
                   </div>
                 </div>
