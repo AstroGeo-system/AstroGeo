@@ -97,6 +97,7 @@ app.include_router(iss.router)
 app.include_router(isro.router)
 app.include_router(asteroids.router)
 app.include_router(donki.router, prefix="/api/v1/donki")
+app.include_router(eonet.router)
 
 # ── Missing /api/asteroids/alerts endpoint (expected by frontend) ──
 @app.get("/api/asteroids/alerts")
@@ -234,6 +235,7 @@ async def query_agent(request: Request, body: QueryRequest):
 class GraphQueryRequest(BaseModel):
     query: str
     include_evidence: bool = True
+    simplify: bool = False   # ← NEW: plain English mode for non-researcher personas
 
 class GraphQueryResponse(BaseModel):
     query:          str
@@ -260,7 +262,7 @@ async def graph_query(request: Request, body: GraphQueryRequest):
 
     async with _GRAPH_QUERY_SEM:
         try:
-            result = await asyncio.to_thread(run_query, body.query)
+            result = await asyncio.to_thread(run_query, body.query, simplify=body.simplify)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
 
@@ -685,20 +687,16 @@ def get_drought(district: str):
     r = {}
 
     try:
-        driver = get_neo4j_driver()
-        with driver.session(database=os.getenv("NEO4J_DATABASE")) as session:
-            result = session.run("""
-                MATCH (z:Zone)-[:HAS_OBSERVATION]->(o:NDVIObservation)
-                WHERE toLower(z.name) CONTAINS toLower($district)
-                  AND o.year = 2024
-                RETURN z.name AS zone_name,
-                       o.ndvi_mean AS ndvi_mean,
-                       o.delta_total AS delta_total_mean,
-                       o.change_label AS change_class_label,
-                       o.confidence AS confidence
-                ORDER BY o.confidence DESC
+        engine = get_sqlalchemy_engine()
+        with engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT zone_name, ndvi_mean, delta_total_mean, change_class_label, confidence
+                FROM ndvi_results
+                WHERE LOWER(zone_name) LIKE LOWER(:district)
+                  AND year = 2024
+                ORDER BY confidence DESC
                 LIMIT 1
-            """, {"district": district}).single()
+            """), {"district": f"%{district}%"}).mappings().fetchone()
 
         if not result:
             raise HTTPException(status_code=404, detail=f"No drought/NDVI baseline found for district '{district}'")

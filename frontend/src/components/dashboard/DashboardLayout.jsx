@@ -14,10 +14,13 @@ import {
   PanelLeft,
   Activity,
   Radio,
+  ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { liveStats as staticStats } from '@/data/dashboardData'
 import { api } from '@/lib/api'
+import PlainEnglishToggle from '@/components/persona/PlainEnglishToggle'
+import { usePersona } from '@/hooks/usePersona'
 
 const nav = [
   { href: '/', label: 'Home', icon: LayoutDashboard },
@@ -27,45 +30,102 @@ const nav = [
   { href: '/research', label: 'Research Lab', icon: FlaskConical },
 ]
 
+// ── U5: Build persona-aware ticker items ─────────────────────────
+function buildPersonaTicker(persona, liveData) {
+  const { schedule, passes, verified, drought, solar } = liveData
+
+  const launchDays = schedule?.countdown?.days != null
+    ? `${schedule.countdown.days}d`
+    : '23d'
+
+  const passArray = Array.isArray(passes) ? passes :
+    Array.isArray(passes?.passes) ? passes.passes : []
+  const visibleCount = String(passArray.filter(p => (p.maxelevation ?? p.max_el ?? 0) > 30).length || 3)
+
+  const verifiedCount = verified?.total
+    ? verified.total.toLocaleString()
+    : '1,247'
+
+  const droughtAlerts = drought ?? '2'
+
+  const eventsArray = Array.isArray(solar?.events) ? solar.events :
+    Array.isArray(solar?.data) ? solar.data :
+    Array.isArray(solar) ? solar : []
+  const solarStatus = eventsArray.some(e => e.classType?.startsWith('X') || e.classType?.startsWith('M'))
+    ? 'ACTIVE' : 'CALM'
+
+  switch (persona) {
+    case 'farmer':
+      return [
+        { id: 'drought', label: 'Drought Alerts',  value: droughtAlerts },
+        { id: 'zones',   label: 'Zones Monitored', value: '17' },
+        { id: 'solar',   label: 'Solar Risk',       value: solarStatus },
+        { id: 'launch',  label: 'Next ISRO Launch', value: launchDays },
+      ]
+    case 'student':
+      return [
+        { id: 'visible',   label: 'Visible Tonight',   value: visibleCount },
+        { id: 'asteroids', label: 'Asteroids Tracked',  value: '5,836' },
+        { id: 'sat',       label: 'Active Satellites',  value: '52' },
+        { id: 'launch',    label: 'Next ISRO Launch',   value: launchDays },
+      ]
+    case 'journalist':
+      return [
+        { id: 'solar',     label: 'Solar Activity',    value: solarStatus },
+        { id: 'drought',   label: 'Drought Zones',     value: droughtAlerts },
+        { id: 'asteroids', label: 'Asteroid Alerts',   value: '3' },
+        { id: 'launch',    label: 'ISRO Launch in',    value: launchDays },
+      ]
+    case 'policymaker':
+      return [
+        { id: 'high-risk', label: 'High-Risk Districts', value: droughtAlerts },
+        { id: 'zones',     label: 'Zones Monitored',     value: '17' },
+        { id: 'isro-rate', label: 'ISRO Success Rate',   value: '86%' },
+        { id: 'solar',     label: 'Solar Status',        value: solarStatus },
+      ]
+    default: // researcher + fallback
+      return [
+        { id: 'verified', label: 'Predictions Verified', value: verifiedCount },
+        { id: 'sat',      label: 'Active Satellites',     value: '52' },
+        { id: 'visible',  label: 'Visible Tonight',       value: visibleCount },
+        { id: 'launch',   label: 'Next ISRO Launch',      value: launchDays },
+      ]
+  }
+}
+
 export default function DashboardLayout({ children }) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
-  const [liveStats, setLiveStats] = useState(staticStats)
+
+  // Raw live data
+  const [rawData, setRawData] = useState({
+    schedule: null, passes: null, verified: null, drought: null, solar: null
+  })
+
+  const { persona, isResearcher, clearPersona } = usePersona()
 
   useEffect(() => {
     api.getLiveStats().then(([schedule, passes, verified]) => {
-      setLiveStats([
-        {
-          id:    'sat',
-          label: 'Active Satellites',
-          value: '52',
-        },
-        {
-          id:    'launch',
-          label: 'Next ISRO Launch',
-          value: schedule?.countdown?.days != null
-            ? `${schedule.countdown.days}d`
-            : '23d',
-        },
-        {
-          id:    'visible',
-          label: 'Visible Tonight',
-          value: passes
-            ? String(passes.filter(p => (p.maxelevation ?? p.max_el ?? 0) > 30).length)
-            : '3',
-        },
-        {
-          id:    'verified',
-          label: 'Predictions Verified',
-          value: verified?.total
-            ? verified.total.toLocaleString()
-            : '1,247',
-        },
-      ])
+      setRawData(prev => ({ ...prev, schedule, passes, verified }))
     })
+    // Fetch drought count for farmer/policymaker ticker
+    api.getDrought('Maharashtra').then(d => {
+      const count = d?.severity === 'Severe' ? '4' : d?.severity === 'Moderate' ? '2' : '1'
+      setRawData(prev => ({ ...prev, drought: count }))
+    }).catch(() => {})
+    // Fetch solar events for journalist/policymaker/farmer ticker
+    api.getSolarEvents().then(s => {
+      setRawData(prev => ({ ...prev, solar: s }))
+    }).catch(() => {})
   }, [])
 
+  const liveStats = buildPersonaTicker(persona, rawData)
   const sidebarW = collapsed ? 'w-[72px]' : 'w-[260px]'
+
+  // U7: handler for researcher Full Access chip → opens selector
+  const handleSwitchPersona = () => {
+    clearPersona()
+  }
 
   return (
     <div className="relative z-10 min-h-screen text-slate-100">
@@ -147,6 +207,21 @@ export default function DashboardLayout({ children }) {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <PlainEnglishToggle />
+
+              {/* U7: Full Access chip — only visible for Researcher persona */}
+              {isResearcher && (
+                <button
+                  id="researcher-full-access-chip"
+                  onClick={handleSwitchPersona}
+                  title="You are in Researcher mode — all data, models, and evidence chains are visible. Other personas see a simplified view. Click to switch persona."
+                  className="hidden items-center gap-1.5 rounded-lg border border-blue-500/40 px-3 py-1.5 text-xs font-medium text-blue-400 transition hover:bg-blue-500/10 sm:flex"
+                >
+                  <ShieldCheck className="h-3 w-3" />
+                  Full Access
+                </button>
+              )}
+
               <div className="hidden items-center gap-2 text-right sm:block">
                 <div className="text-xs text-slate-500">Operator</div>
                 <div className="text-sm font-medium text-white">AstroExplorer</div>
@@ -157,7 +232,7 @@ export default function DashboardLayout({ children }) {
             </div>
           </div>
 
-          {/* Live stats ticker */}
+          {/* U5: Persona-aware live stats ticker */}
           <div className="border-t border-white/5 bg-[#050508]/80">
             <div className="relative mx-auto max-w-[1400px] overflow-hidden py-2">
               <div className="flex animate-ticker whitespace-nowrap will-change-transform">

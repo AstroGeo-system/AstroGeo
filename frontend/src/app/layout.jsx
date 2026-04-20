@@ -2,6 +2,7 @@ import './globals.css'
 import { AppShellProvider } from '@/components/providers/AppShellProvider'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import ChatWidget from '@/components/ChatWidget'
+import PersonaShell from '@/components/providers/PersonaShell'
 
 export const metadata = {
   title: 'AstroGeo — Space Intelligence',
@@ -15,9 +16,11 @@ export default function RootLayout({ children }) {
         <div className="stars-bg" aria-hidden />
         <div className="nebula-overlay" aria-hidden />
         <AppShellProvider>
-          <div className="relative z-10">
-            <DashboardLayout>{children}</DashboardLayout>
-          </div>
+          <PersonaShell>
+            <div className="relative z-10">
+              <DashboardLayout>{children}</DashboardLayout>
+            </div>
+          </PersonaShell>
         </AppShellProvider>
         {/* Floating AI chat widget — present on all pages */}
         <ChatWidget />

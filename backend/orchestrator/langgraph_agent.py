@@ -46,9 +46,11 @@ def close_langgraph_pg_pool() -> None:
 class AstroGeoState(TypedDict):
     query:              str
     query_domain:       str
+    simplify:           bool          # ← NEW: plain English mode
     asteroid_context:   Optional[dict]
     geospatial_context: Optional[dict]
-    solar_context:      Optional[dict]       # ← NEW
+    agro_context:       Optional[dict]       # ← NEW: agro explicit context
+    solar_context:      Optional[dict]
     graph_context:      Optional[list]
     final_answer:       Optional[str]
     evidence_chain:     list
@@ -177,6 +179,73 @@ def geospatial_node(state: AstroGeoState) -> AstroGeoState:
                 _get_pg_pool().putconn(conn)
             except Exception:
                 pass
+
+    return state
+
+# ── Node 3.5: Agro Agent ──────────────────────────────────────
+def agro_node(state: AstroGeoState) -> AstroGeoState:
+    if state['query_domain'] not in ('agro', 'cross'):
+        print("[Agro] Skipped — not relevant domain")
+        return state
+
+    try:
+        conn = psycopg2.connect(
+            dbname=os.getenv('DB_NAME'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD', ''),
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=os.getenv('DB_PORT', '5432'),
+        )
+        
+        # Pull high risk / drought zones
+        df = pd.read_sql("""
+            SELECT zone_name, ndvi_mean, delta_total_mean as ndvi_drop, change_class_label
+            FROM ndvi_results
+            WHERE year = 2024
+            ORDER BY ndvi_mean ASC
+            LIMIT 5
+        """, conn)
+
+        # Check for specific districts in query
+        district_query = state['query'].lower()
+        specific_zone = next((z for z in ['marathwada', 'vidarbha', 'maharashtra', 'punjab', 'rajasthan'] if z in district_query), None)
+
+        if specific_zone:
+            specific_df = pd.read_sql(f"""
+                SELECT zone_name, ndvi_mean, delta_total_mean as ndvi_drop, change_class_label
+                FROM ndvi_results
+                WHERE year = 2024 AND LOWER(zone_name) LIKE '%%{specific_zone}%%'
+                LIMIT 1
+            """, conn)
+            if not specific_df.empty:
+                df = pd.concat([df, specific_df]).drop_duplicates(subset=['zone_name'])
+
+        conn.close()
+
+        drought_scores = []
+        for _, row in df.iterrows():
+            drought_score = min(1.0, max(0.0, 0.5 + (-row['ndvi_drop'] * 2)))
+            drought_scores.append({
+                'zone': row['zone_name'],
+                'drought_score': float(round(drought_score, 2)),
+                'risk_level': 'Severe' if drought_score > 0.7 else 'Moderate' if drought_score > 0.4 else 'Mild',
+            })
+
+        state['agro_context'] = {
+            'monitored_zones': len(drought_scores),
+            'drought_data': drought_scores,
+            'advice': "If drought risk is Severe or Moderate, delaying irrigation might stress crops further unless water reserves are critical, in which case precision GPS irrigation is advised. Note: Solar events may disrupt GPS precision irrigation."
+        }
+        state['evidence_chain'].append({
+            'step':   'agro_agent',
+            'source': 'PostgreSQL ndvi_results (Drought metrics)',
+            'rows':   len(drought_scores),
+        })
+        print(f"[Agro] Loaded {len(drought_scores)} drought records")
+
+    except Exception as e:
+        print(f"[Agro] DB error: {e}")
+        state['agro_context'] = {'error': str(e)}
 
     return state
 
@@ -349,6 +418,9 @@ def synthesiser_node(state: AstroGeoState) -> AstroGeoState:
     if state.get('solar_context') and 'error' not in state['solar_context']:
         context_parts.append(f"Solar weather data: {state['solar_context']}")
 
+    if state.get('agro_context') and 'error' not in state['agro_context']:
+        context_parts.append(f"Agro data (Drought metrics): {state['agro_context']}")
+
     if state.get('graph_context'):
         context_parts.append(f"Cross-domain graph results: {state['graph_context']}")
 
@@ -356,24 +428,52 @@ def synthesiser_node(state: AstroGeoState) -> AstroGeoState:
         state['final_answer'] = "No data could be retrieved for this query."
         return state
 
-    prompt = f"""
-    You are AstroGeo, a scientific AI assistant specialising in
-    astronomy, space weather, and Earth observation over India.
+    simplify = state.get('simplify', False)
 
-    Answer the following query using ONLY the provided evidence.
-    Be precise, cite specific values, and acknowledge uncertainty.
+    if simplify:
+        system_prompt = """
+You are AstroGeo, an AI assistant explaining space and Earth data to non-scientists.
 
-    When solar/geomagnetic data is present, explain the causal chain:
-    Solar Event → GPS Degradation → Smart Irrigation Disruption
-    → Agricultural Impact in vulnerable zones.
+Rewrite the evidence below in plain, jargon-free language:
+- Replace 'Kp-index 9.0 / G5 geomagnetic storm' with 'a very powerful space storm'
+- Replace 'NDVI delta / vegetation stress anomaly' with 'plants showing signs of damage or poor health'
+- Replace 'Isolation Forest anomaly score' with 'our AI flagged this as unusual'
+- Replace 'kinetic_energy_proxy' with 'how dangerous the asteroid could be if it hit Earth'
+- Replace 'SHAP feature contribution' with 'the main reason our model gave this result'
+- Replace '4-hop graph traversal' with 'we traced the connection through four linked data sources'
+- Replace 'ERA5 precipitation' with 'rainfall recorded at the launch site'
+- Replace 'monsoon_season flag' with 'whether it is monsoon season'
+- Replace 'ROC-AUC' with 'model reliability'
+- Replace 'LandCoverChange: Urban Encroachment' with 'farmland being replaced by buildings'
+- Replace 'SHA-256 verified' with 'this prediction has been checked and has not been altered'
 
-    Query: {state['query']}
+Do NOT mention model names, Cypher paths, confidence scores, or evidence chain steps.
+Lead with the practical implication for the user.
+Write in 2-3 sentences maximum.
+End with a one-sentence action recommendation if relevant.
+"""
+    else:
+        system_prompt = """
+You are AstroGeo, a scientific AI assistant specialising in
+astronomy, space weather, and Earth observation over India.
 
-    Evidence gathered:
-    {chr(10).join(context_parts)}
+Answer the following query using ONLY the provided evidence.
+Be precise, cite specific values, and acknowledge uncertainty.
 
-    Provide a concise scientific answer with specific numbers where available.
-    """
+When solar/geomagnetic data is present, explain the causal chain:
+Solar Event → GPS Degradation → Smart Irrigation Disruption
+→ Agricultural Impact in vulnerable zones.
+
+Provide a concise scientific answer with specific numbers where available.
+"""
+
+    prompt = f"""{system_prompt}
+
+Query: {state['query']}
+
+Evidence gathered:
+{chr(10).join(context_parts)}
+"""
 
     response = llm.invoke(prompt)
     state['final_answer'] = response.content
@@ -381,7 +481,7 @@ def synthesiser_node(state: AstroGeoState) -> AstroGeoState:
         'step':  'synthesiser',
         'model': 'gpt-4o-mini',
     })
-    print("[Synthesiser] Answer generated")
+    print(f"[Synthesiser] Answer generated (simplify={simplify})")
     return state
 
 # ── Routing logic ─────────────────────────────────────────────
@@ -391,6 +491,8 @@ def route_after_router(state: AstroGeoState) -> str:
         return 'astronomy'
     elif domain == 'geospatial':
         return 'geospatial'
+    elif domain == 'agro':
+        return 'agro'
     elif domain == 'solar':
         return 'solar'
     else:
@@ -403,7 +505,8 @@ def build_astrogeo_graph():
     graph.add_node('router',      router_node)
     graph.add_node('astronomy',   astronomy_node)
     graph.add_node('geospatial',  geospatial_node)
-    graph.add_node('solar',       solar_node)       # ← NEW
+    graph.add_node('agro',        agro_node)        # ← NEW
+    graph.add_node('solar',       solar_node)
     graph.add_node('graphrag',    graphrag_node)
     graph.add_node('synthesiser', synthesiser_node)
 
@@ -415,14 +518,16 @@ def build_astrogeo_graph():
         {
             'astronomy':  'astronomy',
             'geospatial': 'geospatial',
-            'solar':      'solar',          # ← NEW
+            'agro':       'agro',           # ← NEW
+            'solar':      'solar',
         }
     )
 
     # All paths converge into graphrag → synthesiser
     graph.add_edge('astronomy',  'geospatial')
-    graph.add_edge('geospatial', 'solar')       # ← NEW: geospatial feeds solar
-    graph.add_edge('solar',      'graphrag')    # ← NEW: solar feeds graphrag
+    graph.add_edge('geospatial', 'agro')            # ← NEW
+    graph.add_edge('agro',       'solar')           # ← NEW
+    graph.add_edge('solar',      'graphrag')
     graph.add_edge('graphrag',   'synthesiser')
     graph.add_edge('synthesiser', END)
 
@@ -441,8 +546,8 @@ def _get_compiled_graph():
 
 
 # ── Public API ────────────────────────────────────────────────
-def run_query(query: str) -> dict:
-    initial_state = {"query": query, "evidence_chain": []}
+def run_query(query: str, simplify: bool = False) -> dict:
+    initial_state = {"query": query, "evidence_chain": [], "simplify": simplify}
     return _get_compiled_graph().invoke(initial_state)
 
 # ── Test ──────────────────────────────────────────────────────

@@ -12,6 +12,7 @@ import {
   Cell,
 } from 'recharts'
 import { api } from '@/lib/api'
+import { usePersona } from '@/hooks/usePersona'
 
 function cn(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -90,6 +91,8 @@ function VerifyTab() {
     }
     setIsVerifying(false)
   }
+
+  const { visibility, isSimple } = usePersona()
 
   const shapChartData =
     verifiedRecord?.shap_factors?.map((f) => ({
@@ -241,11 +244,11 @@ function VerifyTab() {
                   <div className="border border-slate-700/50 rounded-xl p-4 bg-[#0a0e17]/50">
                     <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-2">Ledger commit</div>
                     <p className="text-xs font-mono text-slate-400 break-all">
-                      Block: #{verifiedRecord.ledger_block} · {verifiedRecord.final_signature}
+                      Block: #{verifiedRecord.ledger_block} · {visibility.showSHA256 ? verifiedRecord.final_signature : '••••••••••••••••'}
                     </p>
                   </div>
                   
-                  {shapChartData.length > 0 && (
+                  {shapChartData.length > 0 && visibility.showSHAP && (
                     <div className="border border-slate-700/50 rounded-xl p-4 bg-[#0a0e17]/50">
                        <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-4">SHAP factors</div>
                        <div className="text-[10px] text-slate-500 mb-2">Blue = positive impact · Orange = negative</div>
@@ -497,12 +500,19 @@ function AuditLogTab() {
 
 // ── Main export ──────────────────────────────────────────────────
 export default function ResearchLab() {
-  const tabs = [
-    { value: 'verify', label: '✅ Verify Predictions' },
-    { value: 'models', label: '🧠 Model Cards' },
-    { value: 'audit',  label: '🔗 Audit Log' }
+  const { visibility } = usePersona()
+
+  const allTabs = [
+    { value: 'verify', label: '✅ Verify Predictions', alwaysShow: true },
+    { value: 'models', label: '🧠 Model Cards',        alwaysShow: false, requiresKey: 'showModelCards' },
+    { value: 'audit',  label: '🔗 Audit Log',          alwaysShow: false, requiresKey: 'showAuditLog' },
   ]
+
+  const tabs = allTabs.filter(t => t.alwaysShow || visibility[t.requiresKey])
   const [activeTab, setActiveTab] = useState('verify')
+
+  // If currently active tab is hidden for this persona, switch to verify
+  const safeTab = tabs.find(t => t.value === activeTab) ? activeTab : 'verify'
 
   return (
     <div className="min-h-screen bg-[#0a0e17] text-slate-200 font-body">
@@ -517,7 +527,7 @@ export default function ResearchLab() {
 
         <div className="flex items-center gap-8 border-b border-slate-800 mb-8 overflow-x-auto custom-scrollbar pb-1">
           {tabs.map(t => {
-            const isActive = activeTab === t.value
+            const isActive = safeTab === t.value
             return (
               <button
                 key={t.value}
@@ -540,9 +550,9 @@ export default function ResearchLab() {
         </div>
 
         <AnimatePresence mode="wait">
-          {activeTab === 'verify' && <VerifyTab key="verify" />}
-          {activeTab === 'models' && <ModelCardsTab key="models" />}
-          {activeTab === 'audit'  && <AuditLogTab key="audit" />}
+          {safeTab === 'verify' && <VerifyTab key="verify" />}
+          {safeTab === 'models' && visibility.showModelCards && <ModelCardsTab key="models" />}
+          {safeTab === 'audit'  && visibility.showAuditLog   && <AuditLogTab  key="audit" />}
         </AnimatePresence>
 
       </div>

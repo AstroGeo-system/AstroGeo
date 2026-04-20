@@ -71,8 +71,9 @@ export const api = {
   getISROArchive:    () => get('/api/isro/archive'),
 
   // ── GraphRAG ──────────────────────────────────────────────
-  query: (q) =>
-    post('/api/graph/query', { query: q, include_evidence: true }),
+  query: (q, simplify = false) =>
+    post('/api/graph/query', { query: q, include_evidence: true, simplify }),
+
 
   // ── Verification ──────────────────────────────────────────
   verify:        (id)     => get(`/api/verify/${id}`),
