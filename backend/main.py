@@ -330,6 +330,26 @@ async def health_check():
     return {"status": "healthy"}
 
 
+@app.get("/db-ping")
+async def db_ping():
+    """Diagnostic: test DB connectivity and return the raw connection URL shape + error."""
+    try:
+        engine = get_sqlalchemy_engine()
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT asteroid_id, risk_category FROM astronomy.asteroid_ml_predictions LIMIT 1")).fetchone()
+            return {
+                "status": "connected",
+                "sample_row": dict(result._mapping) if result else None,
+                "db_url_shape": str(engine.url).split("@")[-1],  # only show host, not credentials
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "db_url_shape": str(get_sqlalchemy_engine().url).split("@")[-1],
+        }
+
+
 @app.post("/query")
 @limiter.limit(os.getenv("RATE_LIMIT_QUERY", "90/minute"))
 async def query_agent(request: Request, body: QueryRequest):
