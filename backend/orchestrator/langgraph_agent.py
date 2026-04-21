@@ -69,42 +69,91 @@ llm = ChatOpenAI(
     api_key=os.getenv('OPENAI_API_KEY')
 )
 
+# ── Keyword → domain map (checked BEFORE the LLM to guarantee correct routing) ─
+# Longer / more specific phrases are checked first (dict is ordered in Python 3.7+).
+_KEYWORD_DOMAIN: list[tuple[str, str]] = [
+    # ── Solar (must beat cross for explict solar terms) ──────────
+    ('solar flare',          'solar'),
+    ('geomagnetic storm',    'solar'),
+    ('geomagnetic',          'solar'),
+    ('space weather',        'solar'),
+    ('kp index',             'solar'),
+    ('kp-index',             'solar'),
+    ('solar storm',          'solar'),
+    ('cme',                  'solar'),
+    ('donki',                'solar'),
+    ('magnetosphere',        'solar'),
+    ('aurora',               'solar'),
+    # ── Astronomy / launch / ML ──────────────────────────────────
+    ('shap',                 'astronomy'),
+    ('launch failure',       'astronomy'),
+    ('launch risk',          'astronomy'),
+    ('launch probability',   'astronomy'),
+    ('launch success',       'astronomy'),
+    ('kinetic energy proxy', 'astronomy'),
+    ('anomaly score',        'astronomy'),
+    ('risk category',        'astronomy'),
+    ('risk score',           'astronomy'),
+    ('feature importance',   'astronomy'),
+    ('ml model',             'astronomy'),
+    ('asteroid',             'astronomy'),
+    ('near-earth',           'astronomy'),
+    ('orbit',                'astronomy'),
+    ('iss ',                 'astronomy'),
+    ('isro',                 'astronomy'),
+    # ── Geospatial ───────────────────────────────────────────────
+    ('ndvi',                 'geospatial'),
+    ('vegetation',           'geospatial'),
+    ('land cover',           'geospatial'),
+    ('urban growth',         'geospatial'),
+    ('deforestation',        'geospatial'),
+    # ── Agro ─────────────────────────────────────────────────────
+    ('drought',              'agro'),
+    ('crop',                 'agro'),
+    ('rainfall',             'agro'),
+    ('monsoon',              'agro'),
+    ('food price',           'agro'),
+]
+
 # ── Node 1: Router ────────────────────────────────────────────
 def router_node(state: AstroGeoState) -> AstroGeoState:
-    prompt = f"""
-    Classify this scientific query into exactly one domain.
-    Choose the MOST SPECIFIC domain that fits. Only use 'cross' when the query
-    genuinely requires combining data from two or more different domains.
+    query_lower = state['query'].lower()
 
-    Domains and examples:
-    - astronomy  : asteroids, near-Earth objects, orbits, kinetic energy proxy,
-                   SHAP values, ML model prediction, launch risk, launch failure,
-                   anomaly score, risk category, ISS, space mission, risk score
-    - geospatial : vegetation, land cover, NDVI, urban growth, satellite imagery,
-                   deforestation, land use change
-    - agro       : crops, drought, rainfall, food prices, farming, irrigation,
-                   monsoon, soil, water stress
-    - solar      : solar flares, geomagnetic storms, space weather, Kp index,
-                   GPS disruption, CME, DONKI, aurora, magnetosphere
-    - cross      : ONLY when the query explicitly connects two or more domains,
-                   e.g. "Did the solar storm affect crop yields?"
-                   or "Which asteroid-threatened zones also show vegetation loss?"
+    # 1. Deterministic keyword pre-routing (fast, reliable, no LLM needed)
+    domain = None
+    for keyword, mapped_domain in _KEYWORD_DOMAIN:
+        if keyword in query_lower:
+            domain = mapped_domain
+            print(f"[Router] Keyword match: '{keyword}' → {mapped_domain}")
+            break
+
+    # 2. LLM routing only for queries with no keyword match
+    if domain is None:
+        prompt = f"""
+    Classify this scientific query into exactly one domain.
+    Choose the MOST SPECIFIC single domain. Only use 'cross' when the query
+    explicitly connects two or more different domains in one question.
+
+    Domains:
+    - astronomy  : asteroids, orbits, launch risk, ML predictions, ISS, space missions
+    - geospatial : vegetation, NDVI, land cover, satellite imagery
+    - agro       : crops, drought, rainfall, food prices, monsoon
+    - solar      : solar flares, geomagnetic storms, space weather, Kp index, GPS
+    - cross      : ONLY for explicit cross-domain, e.g. "Did the solar storm affect crops?"
 
     Query: {state['query']}
 
     Respond with just the domain word. Nothing else.
     """
-    response = llm.invoke(prompt)
-    domain = response.content.strip().lower()
-
-    # Sanitise — fallback to astronomy if unexpected output
-    if domain not in ('astronomy', 'geospatial', 'agro', 'solar', 'cross'):
-        domain = 'astronomy'
+        response = llm.invoke(prompt)
+        domain = response.content.strip().lower()
+        if domain not in ('astronomy', 'geospatial', 'agro', 'solar', 'cross'):
+            domain = 'astronomy'
+        print(f"[Router] LLM classified: {domain}")
 
     # ── Detect temporal intent ─────────────────────────────────
-    query_lower = state['query'].lower()
     if any(kw in query_lower for kw in _FUTURE_KEYWORDS):
-        temporal_intent = 'recent'   # user wants upcoming / recent events
+        temporal_intent = 'recent'
     elif any(kw in query_lower for kw in ('was', 'were', 'did', 'happened', 'occurred', 'last year', 'in 2024', 'in 2023')):
         temporal_intent = 'historical'
     else:
@@ -118,6 +167,7 @@ def router_node(state: AstroGeoState) -> AstroGeoState:
         'temporal_intent': temporal_intent,
     })
     print(f"[Router] Domain: {domain} | Temporal intent: {temporal_intent}")
+
     return state
 
 # ── Node 2: Astronomy Agent ───────────────────────────────────
