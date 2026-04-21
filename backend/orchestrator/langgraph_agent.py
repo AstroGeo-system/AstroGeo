@@ -72,12 +72,23 @@ llm = ChatOpenAI(
 # ── Node 1: Router ────────────────────────────────────────────
 def router_node(state: AstroGeoState) -> AstroGeoState:
     prompt = f"""
-    Classify this scientific query into exactly one domain:
-    - astronomy  (asteroids, orbits, ISS, space events)
-    - geospatial (vegetation, land cover, NDVI, urban growth)
-    - agro       (crops, drought, rainfall, food prices)
-    - solar      (solar flares, geomagnetic storms, space weather, GPS disruption, irrigation)
-    - cross      (requires multiple domains)
+    Classify this scientific query into exactly one domain.
+    Choose the MOST SPECIFIC domain that fits. Only use 'cross' when the query
+    genuinely requires combining data from two or more different domains.
+
+    Domains and examples:
+    - astronomy  : asteroids, near-Earth objects, orbits, kinetic energy proxy,
+                   SHAP values, ML model prediction, launch risk, launch failure,
+                   anomaly score, risk category, ISS, space mission, risk score
+    - geospatial : vegetation, land cover, NDVI, urban growth, satellite imagery,
+                   deforestation, land use change
+    - agro       : crops, drought, rainfall, food prices, farming, irrigation,
+                   monsoon, soil, water stress
+    - solar      : solar flares, geomagnetic storms, space weather, Kp index,
+                   GPS disruption, CME, DONKI, aurora, magnetosphere
+    - cross      : ONLY when the query explicitly connects two or more domains,
+                   e.g. "Did the solar storm affect crop yields?"
+                   or "Which asteroid-threatened zones also show vegetation loss?"
 
     Query: {state['query']}
 
@@ -86,9 +97,9 @@ def router_node(state: AstroGeoState) -> AstroGeoState:
     response = llm.invoke(prompt)
     domain = response.content.strip().lower()
 
-    # Sanitise — fallback to cross if unexpected output
+    # Sanitise — fallback to astronomy if unexpected output
     if domain not in ('astronomy', 'geospatial', 'agro', 'solar', 'cross'):
-        domain = 'cross'
+        domain = 'astronomy'
 
     # ── Detect temporal intent ─────────────────────────────────
     query_lower = state['query'].lower()
@@ -307,8 +318,21 @@ def solar_node(state: AstroGeoState) -> AstroGeoState:
     → Crop Stress in already drought-vulnerable zones.
     """
     if state['query_domain'] not in ('solar', 'cross'):
-        print("[Solar] Skipped — not relevant domain")
+        print("[Solar] Skipped — not solar/cross domain")
         return state
+
+    # For 'cross' domain, only run solar if the query has solar-related keywords.
+    # This prevents solar DB queries from firing on SHAP/asteroid/vegetation questions.
+    if state['query_domain'] == 'cross':
+        solar_keywords = {
+            'solar', 'flare', 'geomagnetic', 'storm', 'kp', 'kp index',
+            'space weather', 'gps', 'cme', 'aurora', 'magnetosphere',
+            'donki', 'disruption', 'irrigation', 'space storm',
+        }
+        query_lower_check = state['query'].lower()
+        if not any(kw in query_lower_check for kw in solar_keywords):
+            print("[Solar] Skipped — cross domain but no solar keywords in query")
+            return state
 
     # ── Detect if the query targets a specific region ──────────
     query_lower = state['query'].lower()
