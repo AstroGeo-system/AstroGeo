@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: astrogeo-api
+  namespace: astrogeo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: astrogeo-api
+  template:
+    metadata:
+      labels:
+        app: astrogeo-api
+    spec:
+      containers:
+        - name: api
+          # Replace with your pushed registry image
+          image: ghcr.io/astrogeo-system/astrogeo-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: PORT
+              value: "8000"
+            - name: CORS_ORIGINS
+              value: "https://astrogeoai.netlify.app"
+          envFrom:
+            - secretRef:
+                name: astrogeo-secrets
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: astrogeo-api
+  namespace: astrogeo
+spec:
+  selector:
+    app: astrogeo-api
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
+
