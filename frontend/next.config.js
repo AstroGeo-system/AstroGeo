@@ -1,6 +1,13 @@
+const path = require('path')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  turbopack: {
+    resolveAlias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
   images: {
     remotePatterns: [
       {
