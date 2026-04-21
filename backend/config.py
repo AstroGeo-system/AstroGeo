@@ -17,11 +17,14 @@ class Settings(BaseSettings):
     NASA_API_BASE: str = "https://api.nasa.gov"
     WEATHER_API_BASE: str = "https://api.open-meteo.com/v1"
 
-    # Database settings (Defaults mapped to Supabase for seamless remote deployment)
-    DB_HOST: str = "db.auyojdmjmgviztctbdsp.supabase.co"
-    DB_PORT: str = "5432"
+    # Database settings
+    # Using Supabase Transaction Pooler (IPv4, port 6543) — required for Render free tier
+    # The direct db. hostname resolves to IPv6 which Render cannot reach.
+    # Pooler user must include project ref: postgres.PROJECT_REF
+    DB_HOST: str = "aws-1-ap-northeast-2.pooler.supabase.com"
+    DB_PORT: str = "6543"
     DB_NAME: str = "postgres"
-    DB_USER: str = "postgres"
+    DB_USER: str = "postgres.auyojdmjmgviztctbdsp"
     DB_PASSWORD: str = "*EPB8FSbV+Lr!2Z"
     DB_SCHEMA: str = "astronomy"
 
@@ -29,7 +32,7 @@ class Settings(BaseSettings):
     def DATABASE_URL(self) -> str:
         import urllib.parse
         encoded_pw = urllib.parse.quote_plus(self.DB_PASSWORD)
-        # Force sslmode=require for remote endpoints like Supabase when connecting from Render
+        # sslmode=require is mandatory for Supabase; no_prepare=1 is needed for PgBouncer transaction pooler
         return f"postgresql://{self.DB_USER}:{encoded_pw}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?sslmode=require"
     
     model_config = {
