@@ -5,10 +5,111 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
+// ── Lightweight inline Markdown renderer (zero extra deps) ────
+// Handles: **bold**, numbered lists (1. ...), bullet lists (- ...), paragraphs
+function MarkdownMessage({ content }) {
+  if (!content) return null
+
+  const renderInline = (text) => {
+    const parts = text.split(/(\*\*[^*]+\*\*)/).filter(Boolean)
+    return parts.map((part, idx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return (
+          <strong key={idx} className="font-semibold text-white">
+            {part.slice(2, -2)}
+          </strong>
+        )
+      }
+      return <span key={idx}>{part}</span>
+    })
+  }
+
+  const lines = content.split('\n')
+  const elements = []
+  let i = 0
+
+  while (i < lines.length) {
+    const line = lines[i].trim()
+
+    // Numbered list block
+    if (/^\d+\.\s+/.test(line)) {
+      const items = []
+      while (i < lines.length) {
+        const li = lines[i].trim()
+        const m = li.match(/^(\d+)\.\s+(.+)/)
+        if (m) {
+          items.push(
+            <li key={i} className="mb-1.5 leading-snug">
+              {renderInline(m[2])}
+            </li>
+          )
+          i++
+        } else if (li === '') {
+          i++
+          break
+        } else {
+          break
+        }
+      }
+      elements.push(
+        <ol key={`ol-${i}`} className="list-decimal list-outside pl-5 my-2 space-y-0.5">
+          {items}
+        </ol>
+      )
+      continue
+    }
+
+    // Bullet list block
+    if (/^[-•*]\s+/.test(line)) {
+      const items = []
+      while (i < lines.length) {
+        const li = lines[i].trim()
+        const m = li.match(/^[-•*]\s+(.+)/)
+        if (m) {
+          items.push(
+            <li key={i} className="mb-1 leading-snug">
+              {renderInline(m[1])}
+            </li>
+          )
+          i++
+        } else if (li === '') {
+          i++
+          break
+        } else {
+          break
+        }
+      }
+      elements.push(
+        <ul key={`ul-${i}`} className="list-disc list-outside pl-5 my-2 space-y-0.5">
+          {items}
+        </ul>
+      )
+      continue
+    }
+
+    // Empty line → small gap
+    if (line === '') {
+      elements.push(<div key={`gap-${i}`} className="h-1.5" />)
+      i++
+      continue
+    }
+
+    // Plain paragraph
+    elements.push(
+      <p key={`p-${i}`} className="leading-snug mb-1">
+        {renderInline(line)}
+      </p>
+    )
+    i++
+  }
+
+  return <div className="space-y-0.5 text-xs">{elements}</div>
+}
+
 const SUGGESTION_CHIPS = [
   { label: 'What asteroids are at risk today?', icon: '☄️' },
   { label: 'Did the May 2024 storm affect Maharashtra?', icon: '⛈️' },
-  { label: 'What is today\'s launch probability?', icon: '🚀' },
+  { label: "What is today's launch probability?", icon: '🚀' },
   { label: 'Which vegetation zones show the most decline?', icon: '🌿' },
 ]
 
@@ -226,13 +327,16 @@ export default function ChatWidget() {
                     </div>
                   )}
                   <div
-                    className={`max-w-[85%] text-xs leading-relaxed rounded-2xl px-3 py-2 whitespace-pre-wrap ${
+                    className={`max-w-[85%] leading-relaxed rounded-2xl px-3 py-2 ${
                       msg.role === 'user'
-                        ? 'bg-indigo-600/80 text-white rounded-tr-sm'
+                        ? 'bg-indigo-600/80 text-white rounded-tr-sm text-xs'
                         : 'bg-slate-800/70 text-slate-200 border border-slate-700/60 rounded-tl-sm'
                     }`}
                   >
-                    {msg.content}
+                    {msg.role === 'assistant'
+                      ? <MarkdownMessage content={msg.content} />
+                      : msg.content
+                    }
                   </div>
                 </motion.div>
               ))}
