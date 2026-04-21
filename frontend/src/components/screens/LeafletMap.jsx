@@ -93,7 +93,7 @@ export default function LeafletMap({
             <GeoJSON 
               data={geoJsonData} 
               style={style}
-              key={zone + metricValue}
+              key={zone + JSON.stringify(allMetrics)}
             />
           )}
         </MapContainer>

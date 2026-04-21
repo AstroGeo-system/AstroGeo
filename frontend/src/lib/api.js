@@ -49,9 +49,9 @@ export const api = {
   getAsteroid:  (des) => get(`/api/asteroids/${des}`),
 
   // ── Earth Watch ───────────────────────────────────────────
-  getNDVI:      (zone, year = 2024) => get(`/api/earth/ndvi/${zone}?year=${year}`),
-  getChange:    (zone) => get(`/api/earth/change/${zone}`),
-  getLiveNDVI:  (zone, year) => get(`/api/earth/live/${zone}/${year}`),
+  getNDVI:      (zone, year = 2024) => get(`/api/earth/ndvi/${encodeURIComponent(zone)}?year=${year}`),
+  getChange:    (zone) => get(`/api/earth/change/${encodeURIComponent(zone)}`),
+  getLiveNDVI:  (zone, year) => get(`/api/earth/live/${encodeURIComponent(zone)}/${year}`),
   getEONETEvents: (params = '') => get(`/api/eonet/events${params ? `?${params}` : ''}`),
   getEONETGeoJSON: (params = '') => get(`/api/eonet/events/geojson${params ? `?${params}` : ''}`),
   getEONETCategories: () => get('/api/eonet/categories'),
