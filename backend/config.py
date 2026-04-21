@@ -31,9 +31,12 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         import urllib.parse
+        # Prioritise the explicit IPv4 pooler to bypass old IPv6 env vars stuck on Render
+        db_host = "aws-1-ap-northeast-2.pooler.supabase.com"
+        db_port = "6543"
+        db_user = "postgres.auyojdmjmgviztctbdsp"
         encoded_pw = urllib.parse.quote_plus(self.DB_PASSWORD)
-        # sslmode=require is mandatory for Supabase; no_prepare=1 is needed for PgBouncer transaction pooler
-        return f"postgresql://{self.DB_USER}:{encoded_pw}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?sslmode=require"
+        return f"postgresql://{db_user}:{encoded_pw}@{db_host}:{db_port}/{self.DB_NAME}?sslmode=require"
     
     model_config = {
         "env_file": os.path.join(os.path.dirname(__file__), ".env"),
