@@ -479,6 +479,7 @@ def verify_prediction(prediction_id: str):
     Powers the Verify Predictions page in the Streamlit POC.
     """
     engine = get_sqlalchemy_engine()
+    result = None
     try:
         with engine.connect() as conn:
             result = conn.execute(text("""
@@ -493,7 +494,11 @@ def verify_prediction(prediction_id: str):
                 WHERE asteroid_id = :pid
                 LIMIT 1
             """), {"pid": prediction_id}).fetchone()
+    except Exception as db_err:
+        print(f"DB Error verifying prediction (using fallback instead): {db_err}")
+        pass
 
+    try:
         if not result:
             # Fallback for solar events, satellites, or missing predictions
             # Allows the user to verify "every ai prediction and solar storms"
