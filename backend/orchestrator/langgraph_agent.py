@@ -708,7 +708,8 @@ as of: {data_as_of}) from NASA DONKI live-seeded data.
 
 Frame your answer correctly:
 - Say "Based on the most recent solar activity in our database (as of {data_as_of})…"
-- Do NOT say an old event is "approaching" — cite its actual date.
+- Do NOT say an old event is "approaching" or "anticipated" — cite its actual date and specify it ALREADY HAPPENED.
+- **CRITICAL**: Today's year is {datetime.now().year}. Events from 2024 or earlier are absolutely in the PAST. Never describe a 2024 event as "future" or "anticipated".
 - If the most recent events are moderate (M-class), say that; do not escalate to 'X-class danger'.
 - End with: "AstroGeo's dataset is updated from NASA DONKI. For real-time space weather
   forecasts, also check NOAA Space Weather Prediction Center (swpc.noaa.gov)."
