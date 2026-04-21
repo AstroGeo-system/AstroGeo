@@ -86,6 +86,7 @@ export function getVisibility(personaId = 'researcher') {
     showAdvancedCharts: true,
     showModelCards: true,
     showAuditLog: true,
+    showPersonaBanner: personaId !== 'researcher',
   }
 
   if (personaId === 'founder') {
