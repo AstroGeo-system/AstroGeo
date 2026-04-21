@@ -87,14 +87,22 @@ function formatDateLabel(dateString) {
 
 function formatCountdown(dateString, currentMs) {
   const target = new Date(dateString)
-  if (Number.isNaN(target.getTime())) return { days: '—', hours: '—', minutes: '—' }
+  if (Number.isNaN(target.getTime())) return { days: '—', hours: '—', minutes: '—', seconds: '—' }
   const diff = target.getTime() - (currentMs || Date.now())
-  if (diff <= 0) return { days: '0', hours: '0', minutes: '0' }
-  const minutesTotal = Math.floor(diff / 60000)
-  const days = Math.floor(minutesTotal / 1440)
-  const hours = Math.floor((minutesTotal % 1440) / 60)
-  const minutes = minutesTotal % 60
-  return { days: String(days).padStart(2, '0'), hours: String(hours).padStart(2, '0'), minutes: String(minutes).padStart(2, '0') }
+  if (diff <= 0) return { days: '00', hours: '00', minutes: '00', seconds: '00' }
+  
+  const secondsTotal = Math.floor(diff / 1000)
+  const days = Math.floor(secondsTotal / 86400)
+  const hours = Math.floor((secondsTotal % 86400) / 3600)
+  const minutes = Math.floor((secondsTotal % 3600) / 60)
+  const seconds = secondsTotal % 60
+  
+  return { 
+    days: String(days).padStart(2, '0'), 
+    hours: String(hours).padStart(2, '0'), 
+    minutes: String(minutes).padStart(2, '0'),
+    seconds: String(seconds).padStart(2, '0')
+  }
 }
 
 function observationDifficulty(distanceAU, magnitude) {
@@ -300,6 +308,7 @@ function LaunchesTab() {
   const [launchLoading, setLaunchLoading] = useState(true)
   const [launchError, setLaunchError] = useState(null)
   const [mounted, setMounted] = useState(false)
+  const [now, setNow] = useState(Date.now())
 
   const agencyOptions = ['All Agencies', 'ISRO', 'SpaceX', 'NASA', 'Others']
   const [launchProb, setLaunchProb] = useState(null)
@@ -311,6 +320,9 @@ function LaunchesTab() {
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setLaunchProb(d) })
       .catch(() => {})
+      
+    const interval = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(interval)
   }, [])
 
   const selectedAgencies = useMemo(() => {
@@ -363,7 +375,7 @@ function LaunchesTab() {
     }
   }, [launches])
 
-  const countdown = formatCountdown(nextIsroLaunch?.window_start, mounted ? Date.now() : Date.now())
+  const countdown = formatCountdown(nextIsroLaunch?.window_start, now)
 
   const displayLaunches = useMemo(() => {
     let list = launches.length > 0 ? launches : [
@@ -462,7 +474,7 @@ function LaunchesTab() {
               <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Mins</div>
             </div>
             <div className="bg-[#0e121e]/80 p-4 rounded-2xl border border-slate-700/50 text-center">
-              <div className="text-3xl font-bold text-white mb-1">00</div>
+              <div className="text-3xl font-bold text-white mb-1">{countdown.seconds || '00'}</div>
               <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Secs</div>
             </div>
           </div>
