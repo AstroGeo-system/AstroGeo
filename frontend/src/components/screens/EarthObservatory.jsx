@@ -491,6 +491,7 @@ function DroughtTab({ geoData }) {
 
 function EONETLiveTab({ categoryHint, title }) {
   const [eventsData, setEventsData] = useState(null)
+  const [allEventsData, setAllEventsData] = useState(null)
   const [categoriesData, setCategoriesData] = useState(null)
   const [layersData, setLayersData] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -500,22 +501,16 @@ function EONETLiveTab({ categoryHint, title }) {
       setLoading(true)
       const query = new URLSearchParams({ limit: '20', status: 'all', days: '120' })
       if (categoryHint) query.set('category', categoryHint)
+      const allEventsQuery = new URLSearchParams({ limit: '40', status: 'all', days: '120' })
 
-      const [eventsRes, categoriesRes, layersRes] = await Promise.all([
+      const [eventsRes, allEventsRes, categoriesRes, layersRes] = await Promise.all([
         api.getEONETEvents(query.toString()),
+        api.getEONETEvents(allEventsQuery.toString()),
         api.getEONETCategories(),
         api.getEONETLayers(),
       ])
-
-      let effectiveEvents = eventsRes
-      // Some categories can legitimately have no recent events; in that case
-      // show latest global events instead of an empty screen.
-      if ((eventsRes?.events?.length ?? 0) === 0) {
-        const fallbackQuery = new URLSearchParams({ limit: '20', status: 'all', days: '60' })
-        effectiveEvents = await api.getEONETEvents(fallbackQuery.toString())
-      }
-
-      setEventsData(effectiveEvents)
+      setEventsData(eventsRes)
+      setAllEventsData(allEventsRes)
       setCategoriesData(categoriesRes)
       setLayersData(layersRes)
       setLoading(false)
@@ -526,12 +521,17 @@ function EONETLiveTab({ categoryHint, title }) {
 
   const rawEvents = eventsData?.events ?? []
   const events = rawEvents.filter(isIndiaEONETEvent)
+  const indiaAllEvents = (allEventsData?.events ?? []).filter(isIndiaEONETEvent)
+  const urbanFallbackEvents = indiaAllEvents
+    .filter((event) => event.categories?.every((cat) => cat.id !== 'floods'))
+    .slice(0, 5)
   const categories = categoriesData?.categories ?? []
   const layersByCategory = layersData?.categories ?? []
   const selectedCategory = categories.find(c => c.id === categoryHint)
   const selectedLayers = (layersByCategory.find(c => c.id === categoryHint)?.layers ?? []).slice(0, 8)
   const activeCount = events.filter(event => event.closed == null).length
   const closedCount = Math.max(events.length - activeCount, 0)
+  const showUrbanFallback = categoryHint === 'manmade' && events.length === 0 && urbanFallbackEvents.length > 0
 
   const formatEventTime = (rawDate) => {
     if (!rawDate) return 'Unknown time'
@@ -587,11 +587,19 @@ function EONETLiveTab({ categoryHint, title }) {
                 <div className="w-16 h-16 rounded-full border border-cyan-400/40 bg-cyan-500/10 flex items-center justify-center mb-4 animate-pulse">
                   <span className="text-2xl">📡</span>
                 </div>
-                <h3 className="text-lg font-semibold text-cyan-100">Quiet Orbit, Sensors Ready</h3>
+                <h3 className="text-lg font-semibold text-cyan-100">
+                  {categoryHint === 'floods' ? 'No Flood Alerts In India' : 'No Urban/Manmade Alerts In India'}
+                </h3>
                 <p className="text-sm text-slate-300 mt-2 max-w-md">
-                  No active incidents are currently detected for this category. Data stream is healthy and continuously monitoring for new events.
+                  {categoryHint === 'floods'
+                    ? 'No live flood incidents were reported inside India for the selected monitoring window.'
+                    : 'No live urban or manmade incidents were reported inside India for the selected monitoring window.'}
                 </p>
-                <p className="text-[11px] text-slate-400 mt-3">Tip: switch category to explore other live global incident signals.</p>
+                <p className="text-[11px] text-slate-400 mt-3">
+                  {categoryHint === 'floods'
+                    ? 'This confirms a calm flood situation right now.'
+                    : 'Showing India activity radar below to keep this panel informative.'}
+                </p>
               </div>
             </div>
           ) : (
@@ -638,6 +646,28 @@ function EONETLiveTab({ categoryHint, title }) {
                   </div>
                 )
               })}
+            </div>
+          )}
+
+          {showUrbanFallback && (
+            <div className="mt-4 border border-slate-700/80 rounded-xl p-4 bg-slate-900/40">
+              <div className="text-xs uppercase tracking-wide text-cyan-400 mb-3">India Activity Radar (Other Categories)</div>
+              <div className="space-y-2 max-h-44 overflow-auto pr-1">
+                {urbanFallbackEvents.map((event) => {
+                  const latestGeom = event.geometry?.[event.geometry.length - 1]
+                  return (
+                    <div key={`fallback-${event.id}`} className="flex items-center justify-between gap-3 border border-slate-700 rounded-lg p-2.5">
+                      <div className="min-w-0">
+                        <div className="text-sm text-slate-200 truncate">{event.title}</div>
+                        <div className="text-[11px] text-slate-400 truncate">{event.categories?.[0]?.title ?? 'Uncategorized'} • {formatEventTime(latestGeom?.date)}</div>
+                      </div>
+                      <a href={event.link} target="_blank" rel="noreferrer" className="text-[11px] text-cyan-400 hover:text-cyan-300 whitespace-nowrap">
+                        Open
+                      </a>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </GlassPanel>
