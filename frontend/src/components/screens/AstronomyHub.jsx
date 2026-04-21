@@ -172,7 +172,7 @@ function AsteroidsTab() {
   }, [bestApproaches, homeCity])
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-4xl mx-auto">
       <div className="space-y-6">
         <GlassPanel className="p-6 relative overflow-hidden border border-slate-700/50 bg-slate-950/70">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -284,37 +284,7 @@ function AsteroidsTab() {
           </div>
         </GlassPanel>
       </div>
-
-      <GlassPanel className="p-6 bg-slate-950/70 border border-slate-700/50 rounded-3xl">
-        <div className="mb-5">
-          <h3 className="text-xl font-semibold text-white">AI Observatory Insights</h3>
-          <p className="text-sm text-slate-400">Combine NASA NeoWs hazard data with launch and visibility intelligence.</p>
-        </div>
-        <div className="grid gap-4">
-          <div className="rounded-3xl border border-slate-700/50 bg-slate-900/80 p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Prediction</span>
-              <span className="text-xs text-emerald-400">Optimal</span>
-            </div>
-            <p className="text-lg font-semibold text-white">{bestApproaches[0]?.name ?? 'No target yet'}</p>
-            <p className="text-sm text-slate-400 mt-2">Target looks best under dark skies with a small telescope.</p>
-          </div>
-          <div className="rounded-3xl border border-slate-700/50 bg-slate-900/80 p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Visibility</span>
-              <span className="text-xs text-cyan-300">{bestApproaches[0] ? observationDifficulty(Number(bestApproaches[0].distanceAU), Number(bestApproaches[0].magnitude)) : 'TBD'}</span>
-            </div>
-            <p className="text-sm text-slate-400">{bestApproaches[0] ? `${bestApproaches[0].name} is the strongest candidate in your selected window.` : 'Change filters to load close approaches.'}</p>
-          </div>
-          <div className="rounded-3xl border border-slate-700/50 bg-slate-900/80 p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Recommendation</span>
-              <span className="text-xs text-amber-300">Binoculars+</span>
-            </div>
-            <p className="text-sm text-slate-400">Focus on targets with bright magnitudes and low orbital distance for the best chance of capture.</p>
-          </div>
-        </div>
-      </GlassPanel>
+      </div>
     </motion.div>
   )
 }
