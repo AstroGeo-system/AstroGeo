@@ -1543,6 +1543,8 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: list
     user_query: str
+    persona: str = 'researcher'
+    simplify: bool = False
 
 class ChatResponse(BaseModel):
     reply: str
@@ -1713,7 +1715,14 @@ def chat_endpoint(request: ChatRequest):
         enriched_user_msg = request.user_query
 
     # Step 3: Build message history for OpenAI
-    messages = [{"role": "system", "content": ASTROGEO_SYSTEM_PROMPT}]
+    persona_rules = ""
+    if request.simplify:
+        persona_rules += "\n\nCRITICAL RULE: The user prefers SIMPLIFIED, PLAIN ENGLISH. Avoid scientific jargon (like Kp-index, NDVI, SHAP, etc.) without explaining it simply. "
+    
+    if request.persona and request.persona != 'researcher':
+        persona_rules += f"\n\nCRITICAL RULE: The user is a {request.persona}. Act appropriately and tailor your response. Focus on details and impacts that matter most to a {request.persona}."
+
+    messages = [{"role": "system", "content": ASTROGEO_SYSTEM_PROMPT + persona_rules}]
 
     # Add prior conversation turns (skip the last user message — we'll add the enriched one)
     for msg in request.messages[:-1] if request.messages else []:

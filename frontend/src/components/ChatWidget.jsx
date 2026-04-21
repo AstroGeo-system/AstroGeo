@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { usePersona } from '@/hooks/usePersona'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -139,12 +140,33 @@ function MarkdownMessage({ content }) {
   return <div className="space-y-0.5 text-xs">{elements}</div>
 }
 
-const SUGGESTION_CHIPS = [
-  { label: 'What asteroids are at risk today?', icon: '☄️' },
-  { label: 'Did the May 2024 storm affect Maharashtra?', icon: '⛈️' },
-  { label: "What is today's launch probability?", icon: '🚀' },
-  { label: 'Which vegetation zones show the most decline?', icon: '🌿' },
-]
+const PERSONA_SUGGESTIONS = {
+  farmer: [
+    { label: 'Is it safe to irrigate in Marathwada this week?', icon: '🌾' },
+    { label: 'Did any solar storms affect my crops recently?', icon: '☀️' },
+    { label: 'What is the drought risk in Vidarbha right now?', icon: '💧' },
+  ],
+  student: [
+    { label: 'How does a geomagnetic storm disrupt GPS signals?', icon: '🛰️' },
+    { label: 'What makes an asteroid anomalous in AstroGeo?', icon: '☄️' },
+    { label: 'Explain the cross-domain solar-agriculture link', icon: '🔗' },
+  ],
+  journalist: [
+    { label: 'What is the biggest space weather story right now?', icon: '📰' },
+    { label: 'Did the May 2024 solar storm affect Indian farmers?', icon: '🇮🇳' },
+    { label: 'What are the top risk asteroids approaching Earth?', icon: '⚠️' },
+  ],
+  researcher: [
+    { label: 'Which asteroids have the highest kinetic energy score?', icon: '🔭' },
+    { label: 'What are the top SHAP drivers for launch failure?', icon: '🚀' },
+    { label: 'Run cross-domain query: solar flares and ISRO launches', icon: '⚙️' },
+  ],
+  operator: [
+    { label: "What is today's launch probability?", icon: '🚀' },
+    { label: 'Show recent solar storm disruptions', icon: '⚡' },
+    { label: 'Which Indian regions face the highest drought risk?', icon: '🗺️' },
+  ]
+}
 
 function TypingIndicator() {
   return (
@@ -168,6 +190,12 @@ export default function ChatWidget() {
   const [loading, setLoading]       = useState(false)
   const messagesEndRef               = useRef(null)
   const inputRef                     = useRef(null)
+
+  const { persona, isSimple, personaConfig } = usePersona()
+
+  const activeChips = PERSONA_SUGGESTIONS[persona] ?? 
+                      PERSONA_SUGGESTIONS[personaConfig?.id] ?? 
+                      PERSONA_SUGGESTIONS.researcher
 
   // Check if backend /api/chat is reachable
   useEffect(() => {
@@ -203,6 +231,8 @@ export default function ChatWidget() {
         body:    JSON.stringify({
           messages:   newMessages,
           user_query: userQuery,
+          persona:    persona || 'researcher',
+          simplify:   isSimple
         }),
       })
 
@@ -333,7 +363,7 @@ export default function ChatWidget() {
 
                   {/* Suggestion chips */}
                   <div className="flex flex-col gap-2 w-full mt-2">
-                    {SUGGESTION_CHIPS.map((chip, i) => (
+                    {activeChips.map((chip, i) => (
                       <button
                         key={i}
                         onClick={() => sendMessage(chip.label)}
