@@ -16,13 +16,21 @@ def get_donki_data():
     if _donki_data_cache is not None:
         return _donki_data_cache
 
-    csv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'solar_events.csv')
+    # 4. ISRO Impacts (Static mock based on standard flare overlaps with 108 launch set)
+    isro_impacts = [
+        {"mission": "Chandrayaan-2", "date": "2019-07-22", "flare": "M2.1", "hours": "-14h", "outcome": "Successful"},
+        {"mission": "PSLV-C49", "date": "2020-11-07", "flare": "M4.4", "hours": "+6h", "outcome": "Successful (Telemetry Noise Alert)"},
+        {"mission": "GSLV-F10", "date": "2021-08-12", "flare": "X1.1", "hours": "-4h", "outcome": "Failed (Cryogenic Anomaly)"},
+        {"mission": "Aditya-L1", "date": "2023-09-02", "flare": "M1.2", "hours": "+18h", "outcome": "Successful"}
+    ]
+
+    csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'solar_events.csv')
     if not os.path.exists(csv_path):
         return {
             "live_status": None,
             "recent_feed": [],
             "timeline": [],
-            "isro_impacts": []
+            "isro_impacts": isro_impacts
         }
 
     df = pd.read_csv(csv_path)
@@ -98,14 +106,6 @@ def get_donki_data():
 
     # 3. Live Status (most recent overall)
     live_status = recent_feed[0] if recent_feed else None
-    
-    # 4. ISRO Impacts (Static mock based on standard flare overlaps with 108 launch set)
-    isro_impacts = [
-        {"mission": "Chandrayaan-2", "date": "2019-07-22", "flare": "M2.1", "hours": "-14h", "outcome": "Successful"},
-        {"mission": "PSLV-C49", "date": "2020-11-07", "flare": "M4.4", "hours": "+6h", "outcome": "Successful (Telemetry Noise Alert)"},
-        {"mission": "GSLV-F10", "date": "2021-08-12", "flare": "X1.1", "hours": "-4h", "outcome": "Failed (Cryogenic Anomaly)"},
-        {"mission": "Aditya-L1", "date": "2023-09-02", "flare": "M1.2", "hours": "+18h", "outcome": "Successful"}
-    ]
     
     _donki_data_cache = {
         "live_status": live_status,
