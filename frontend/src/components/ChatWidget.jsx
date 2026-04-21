@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 // ── Lightweight inline Markdown renderer (zero extra deps) ────
-// Handles: **bold**, numbered lists (1. ...), bullet lists (- ...), paragraphs
+// Handles: ### headings, **bold**, numbered lists, bullet lists, paragraphs
 function MarkdownMessage({ content }) {
   if (!content) return null
 
@@ -30,6 +30,39 @@ function MarkdownMessage({ content }) {
 
   while (i < lines.length) {
     const line = lines[i].trim()
+
+    // ### h3 heading
+    if (line.startsWith('### ')) {
+      elements.push(
+        <p key={`h3-${i}`} className="font-semibold text-slate-100 mt-3 mb-1 text-xs uppercase tracking-wide">
+          {renderInline(line.slice(4))}
+        </p>
+      )
+      i++
+      continue
+    }
+
+    // ## h2 heading
+    if (line.startsWith('## ')) {
+      elements.push(
+        <p key={`h2-${i}`} className="font-bold text-white mt-3 mb-1 text-xs uppercase tracking-wide border-b border-slate-700 pb-0.5">
+          {renderInline(line.slice(3))}
+        </p>
+      )
+      i++
+      continue
+    }
+
+    // # h1 heading
+    if (line.startsWith('# ')) {
+      elements.push(
+        <p key={`h1-${i}`} className="font-bold text-cyan-300 mt-2 mb-1 text-xs uppercase tracking-wide">
+          {renderInline(line.slice(2))}
+        </p>
+      )
+      i++
+      continue
+    }
 
     // Numbered list block
     if (/^\d+\.\s+/.test(line)) {
