@@ -84,16 +84,18 @@ export function getVisibility(personaId = 'researcher') {
     showModelDetails: true,
     showEvidenceChain: true,
     showAdvancedCharts: true,
+    showModelCards: true,
+    showAuditLog: true,
   }
 
   if (personaId === 'founder') {
-    return { ...base, showAdvancedCharts: false }
+    return { ...base, showAdvancedCharts: false, showModelCards: false }
   }
   if (personaId === 'student') {
-    return { ...base, showModelDetails: false }
+    return { ...base, showModelDetails: false, showModelCards: false, showAuditLog: false }
   }
   if (personaId === 'farmer') {
-    return { ...base, showModelDetails: false, showAdvancedCharts: false }
+    return { ...base, showModelDetails: false, showAdvancedCharts: false, showModelCards: false, showAuditLog: false }
   }
   return base
 }
