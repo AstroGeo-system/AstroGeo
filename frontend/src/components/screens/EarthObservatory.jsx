@@ -19,6 +19,29 @@ function cn(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
+function extractLngLatPairs(coords, acc = []) {
+  if (!Array.isArray(coords)) return acc
+  if (
+    coords.length >= 2 &&
+    typeof coords[0] === 'number' &&
+    typeof coords[1] === 'number'
+  ) {
+    acc.push([coords[0], coords[1]])
+    return acc
+  }
+  coords.forEach((child) => extractLngLatPairs(child, acc))
+  return acc
+}
+
+function isWithinIndiaBounds(lng, lat) {
+  return lng >= 68 && lng <= 98 && lat >= 6 && lat <= 38
+}
+
+function isIndiaEONETEvent(event) {
+  const points = (event?.geometry ?? []).flatMap((geom) => extractLngLatPairs(geom?.coordinates))
+  return points.some(([lng, lat]) => isWithinIndiaBounds(lng, lat))
+}
+
 function GlassPanel({ children, className }) {
   return (
     <div className={cn("bg-[#111827]/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden", className)}>
@@ -501,7 +524,8 @@ function EONETLiveTab({ categoryHint, title }) {
     load().catch(() => setLoading(false))
   }, [categoryHint])
 
-  const events = eventsData?.events ?? []
+  const rawEvents = eventsData?.events ?? []
+  const events = rawEvents.filter(isIndiaEONETEvent)
   const categories = categoriesData?.categories ?? []
   const layersByCategory = layersData?.categories ?? []
   const selectedCategory = categories.find(c => c.id === categoryHint)
