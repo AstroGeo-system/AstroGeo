@@ -7,6 +7,7 @@ from psycopg2 import pool as pg_pool
 import pandas as pd
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 from backend.db.pools import get_neo4j_driver
 
