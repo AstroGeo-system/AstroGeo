@@ -589,7 +589,7 @@ function ExplainabilityTab() {
 
 // ── Main export ──────────────────────────────────────────────────
 export default function ResearchLab() {
-  const { visibility } = usePersona()
+  const { visibility, hydrated } = usePersona()
 
   const allTabs = [
     { value: 'verify',  label: '✅ Verify Predictions', alwaysShow: true },
@@ -599,11 +599,21 @@ export default function ResearchLab() {
   ]
 
 
-  const tabs = allTabs.filter(t => t.alwaysShow || visibility[t.requiresKey])
+  // Guard: Don't render tabs until hydrated to prevent SSR mismatch/crashes
+  if (!hydrated) {
+    return (
+      <div className="min-h-screen bg-[#0a0e17] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  const tabs = allTabs.filter(t => t.alwaysShow || (visibility && visibility[t.requiresKey]))
   const [activeTab, setActiveTab] = useState('verify')
 
   // If currently active tab is hidden for this persona, switch to verify
   const safeTab = tabs.find(t => t.value === activeTab) ? activeTab : 'verify'
+
 
   return (
     <div className="min-h-screen bg-[#0a0e17] text-slate-200 font-body">

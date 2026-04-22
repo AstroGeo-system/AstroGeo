@@ -54,7 +54,7 @@ const ShapHeatmap = ({ data }) => {
                 <div className="text-xs font-medium text-slate-400 truncate pr-4 text-right">
                   {feat}
                 </div>
-                {values[i].map((val, j) => {
+                {values[i] && values[i].map((val, j) => {
                   const intensity = val / maxVal
                   return (
                     <div 
@@ -71,6 +71,7 @@ const ShapHeatmap = ({ data }) => {
                     </div>
                   )
                 })}
+
               </div>
             ))}
           </div>

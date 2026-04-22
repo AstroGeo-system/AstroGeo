@@ -83,8 +83,9 @@ export const api = {
   getModelCards: ()       => get('/api/verify/model-cards'),
 
   // ── Explainability ────────────────────────────────────────
-  getShapHeatmap: () => get('/api/explain/shap-heatmap'),
-  getRiskMatrix:  () => get('/api/explain/risk-matrix'),
+  getShapHeatmap: () => get('/api/explain/shap-heatmap').then(d => d || {}),
+  getRiskMatrix:  () => get('/api/explain/risk-matrix').then(d => d || {}),
+
 
 
   // ── Solar Risk & Events ───────────────────────────────────

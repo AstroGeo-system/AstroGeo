@@ -82,11 +82,12 @@ const RiskMatrix = ({ data }) => {
                 </div>
 
                 {/* Data Cells */}
-                {row.map((val, j) => (
+                {row && row.map((val, j) => (
                   <div 
                     key={j} 
                     className={`h-24 rounded-xl border flex flex-col items-center justify-center transition-all hover:scale-[1.02] cursor-default shadow-lg group ${getRiskColor(val)}`}
                   >
+
                     <div className="text-2xl font-bold font-mono tracking-tighter mb-1">{val}</div>
                     <div className="text-[9px] font-black uppercase tracking-widest opacity-80">{getRiskLabel(val)}</div>
                     <div className="w-8 h-1 rounded-full bg-current opacity-20 mt-3 group-hover:opacity-40 transition-opacity" />
