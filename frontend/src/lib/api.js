@@ -1,8 +1,7 @@
 // src/lib/api.js
 // Central API client — all calls to the AstroGeo FastAPI backend.
-// In production, we route through our Next.js catch-all proxy route (/api/backend/[...path])
-// so it can read the Render backend URL dynamically at runtime, bypassing Netlify build-time env vars.
-const BASE = process.env.NEXT_PUBLIC_API_URL || '/api/backend'
+
+const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 async function get(path) {
   try {
