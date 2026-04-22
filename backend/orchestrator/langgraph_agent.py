@@ -745,14 +745,31 @@ Frame your answer correctly:
   forecasts, also check NOAA Space Weather Prediction Center (swpc.noaa.gov)."
 """
             else:
-                temporal_instruction = f"""
+                query_lower_check = state.get('query', '').lower()
+                is_approach_query = any(kw in query_lower_check for kw in (
+                    'approach', 'close approach', 'flyby', 'passing', 'next asteroid',
+                    'upcoming asteroid', 'near-earth object', 'neo'
+                ))
+
+                if domain_flag == 'astronomy' and is_approach_query:
+                    temporal_instruction = f"""
+IMPORTANT — ASTEROID APPROACH QUERIES:
+The user is asking about upcoming asteroid close approaches.
+The AstroGeo database stores ML risk scores and anomaly flags for known NEOs,
+NOT a real-time ephemeris or close-approach schedule.
+
+Answer correctly:
+- Use the asteroid evidence (risk_category, anomaly_score) as context for which asteroids AstroGeo classifies as high-risk.
+- For actual upcoming close approach dates/distances, use your general scientific knowledge about confirmed upcoming NEO close approaches.
+- Today is {datetime.now().strftime('%B %Y')}. Approaches in {datetime.now().year} and later are FUTURE events — describe them as upcoming, not past.
+- Synthesise both the provided evidence and your knowledge. Do NOT say data is unavailable.
+"""
+                else:
+                    temporal_instruction = f"""
 IMPORTANT — TEMPORAL FRAMING:
-The user is asking about UPCOMING or APPROACHING {domain_flag} events.
-AstroGeo analyzes provided evidence.
-Frame your answer correctly:
-- Say "Based on the most recent {domain_flag} data in our records…"
-- Do NOT say an old event is "approaching" or "anticipated" — cite its actual date and specify it ALREADY HAPPENED.
-- **CRITICAL**: Today's year is {datetime.now().year}. Events from 2024 or earlier are absolutely in the PAST. Never describe a 2024 event as "future" or "anticipated".
+The user is asking about recent {domain_flag} data (as of {datetime.now().year}).
+- Events from 2024 or earlier are in the PAST. Do not describe them as future or anticipated.
+- Frame answers from the provided evidence.
 """
         elif temporal == 'historical':
             temporal_instruction = """
