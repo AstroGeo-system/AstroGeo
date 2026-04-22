@@ -30,7 +30,27 @@ const nextConfig = {
       },
     ],
   },
+  // Proxy all /api/* calls to the FastAPI backend on Render
+  // This ensures the Netlify-hosted frontend can reach the backend
+  async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
+      },
+      {
+        source: '/query',
+        destination: `${backendUrl}/query`,
+      },
+      {
+        source: '/health',
+        destination: `${backendUrl}/health`,
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig
+
 

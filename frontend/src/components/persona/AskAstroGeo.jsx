@@ -136,9 +136,13 @@ export default function AskAstroGeo({ prefill }) {
     setEvidenceOpen(false)
     try {
       const data = await api.query(finalQ, shouldSimplify)
-      setResult(data)
-    } catch {
-      setError('Could not reach the AI. Please make sure the backend is running.')
+      if (!data) {
+        setError('Could not reach the backend. Check that NEXT_PUBLIC_API_URL is set correctly and the Render service is running.')
+      } else {
+        setResult(data)
+      }
+    } catch (e) {
+      setError(`Query failed: ${e?.message || 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
