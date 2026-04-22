@@ -321,11 +321,31 @@ function NavicTab() {
   )
 }
 
+// ── Helper: compute live countdown from an ISO window_start string ──────────────────
+function computeCountdown(windowStart, now) {
+  if (!windowStart) return { days: '23', hours: '00', minutes: '00', seconds: '00' }
+  const target = new Date(windowStart).getTime()
+  const diff = target - now
+  if (diff <= 0) return { days: '00', hours: '00', minutes: '00', seconds: '00' }
+  const totalSec = Math.floor(diff / 1000)
+  const days    = Math.floor(totalSec / 86400)
+  const hours   = Math.floor((totalSec % 86400) / 3600)
+  const minutes = Math.floor((totalSec % 3600) / 60)
+  const seconds = totalSec % 60
+  return {
+    days:    String(days).padStart(2, '0'),
+    hours:   String(hours).padStart(2, '0'),
+    minutes: String(minutes).padStart(2, '0'),
+    seconds: String(seconds).padStart(2, '0'),
+  }
+}
+
 // ── LaunchesTab — live probability + historical launch intelligence ────────────────────
 function LaunchesTab() {
   const [prob,     setProb]     = useState(null)
   const [schedule, setSchedule] = useState(null)
   const [loading,  setLoading]  = useState(true)
+  const [now,      setNow]      = useState(Date.now())
 
   useEffect(() => {
     Promise.all([
@@ -336,13 +356,20 @@ function LaunchesTab() {
       setSchedule(s)
       setLoading(false)
     }).catch(() => setLoading(false))
+
+    // Tick every second for the live countdown
+    const interval = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(interval)
   }, [])
 
   const pct         = prob?.probability_pct ?? 92
   const riskLevel   = prob?.risk_level      ?? 'Favorable'
   const riskColor   = riskLevel === 'Favorable' ? 'text-emerald-400' : riskLevel === 'Marginal' ? 'text-amber-400' : 'text-red-400'
   const launches    = schedule?.scheduled_launches ?? []
-  const countdown   = schedule?.countdown ?? { days: 23, hours: 0, minutes: 0 }
+
+  // Prefer a known window_start from the schedule, fall back to hardcoded Gaganyaan date
+  const windowStart = schedule?.next_launch?.window_start ?? '2026-05-15T10:00:00Z'
+  const countdown   = computeCountdown(windowStart, now)
 
   // Gauge arc calculation (SVG)
   const gaugeAngle  = (pct / 100) * 180
@@ -436,9 +463,14 @@ function LaunchesTab() {
               )}
 
               <div className="mt-6 p-3 bg-orange-500/10 border border-orange-500/30 rounded-xl text-center">
-                <div className="text-xs text-slate-400 mb-1">Next Launch Window</div>
-                <div className="text-orange-400 font-bold text-lg">
-                  {countdown.days}d {countdown.hours}h {countdown.minutes}m
+                <div className="text-xs text-slate-400 mb-2">Next Launch Window</div>
+                <div className="grid grid-cols-4 gap-2">
+                  {[['DAYS', countdown.days], ['HRS', countdown.hours], ['MIN', countdown.minutes], ['SEC', countdown.seconds]].map(([label, val]) => (
+                    <div key={label} className="bg-[#0e121e]/80 rounded-xl border border-orange-500/20 p-2 text-center">
+                      <div className="text-xl font-bold text-orange-400">{val}</div>
+                      <div className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">{label}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </>
