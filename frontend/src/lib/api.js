@@ -1,9 +1,8 @@
 // src/lib/api.js
 // Central API client — all calls to the AstroGeo FastAPI backend.
-// When NEXT_PUBLIC_API_URL is not set (e.g. Netlify production), BASE is ''
-// so all calls use relative paths like /api/graph/query which are then
-// intercepted by the Next.js rewrites() proxy in next.config.js.
-const BASE = process.env.NEXT_PUBLIC_API_URL || ''
+// In production, we route through our Next.js catch-all proxy route (/api/backend/[...path])
+// so it can read the Render backend URL dynamically at runtime, bypassing Netlify build-time env vars.
+const BASE = process.env.NEXT_PUBLIC_API_URL || '/api/backend'
 
 async function get(path) {
   try {
