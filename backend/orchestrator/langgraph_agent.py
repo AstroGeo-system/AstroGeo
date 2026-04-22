@@ -117,17 +117,44 @@ _KEYWORD_DOMAIN: list[tuple[str, str]] = [
     ('food price',           'agro'),
 ]
 
+# ── Cross-domain phrase combos (checked BEFORE single-domain keywords) ─
+# If query contains at least one term from EACH group, it's 'cross' domain.
+_CROSS_PAIRS: list[tuple[set, set]] = [
+    # Solar + Vegetation/Agriculture
+    ({'solar', 'storm', 'flare', 'geomagnetic', 'cme', 'kp', 'space weather'},
+     {'vegetation', 'crop', 'farm', 'ndvi', 'irrigation', 'drought', 'agricultural', 'food', 'harvest', 'plant'}),
+    # Solar + GPS / Satellite disruption mentioning downstream effects
+    ({'solar', 'storm', 'flare', 'geomagnetic', 'cme'},
+     {'gps', 'satellite', 'signal', 'disrupted', 'disruption', 'affect', 'affected', 'impact', 'impact'}),
+    # Solar + Launch / ISRO
+    ({'solar', 'storm', 'flare', 'geomagnetic', 'cme', 'kp'},
+     {'launch', 'isro', 'rocket', 'mission'}),
+    # Asteroid + Agriculture / India
+    ({'asteroid', 'near-earth', 'orbit'},
+     {'crop', 'vegetation', 'farm', 'india', 'drought', 'irrigation'}),
+]
+
 # ── Node 1: Router ────────────────────────────────────────────
 def router_node(state: AstroGeoState) -> AstroGeoState:
     query_lower = state['query'].lower()
 
-    # 1. Deterministic keyword pre-routing (fast, reliable, no LLM needed)
-    domain = None
-    for keyword, mapped_domain in _KEYWORD_DOMAIN:
-        if keyword in query_lower:
-            domain = mapped_domain
-            print(f"[Router] Keyword match: '{keyword}' → {mapped_domain}")
+    # 1a. Cross-domain detection — runs FIRST before single-keyword map
+    # If query spans two domains, route to 'cross' immediately.
+    for solar_set, other_set in _CROSS_PAIRS:
+        has_solar = any(kw in query_lower for kw in solar_set)
+        has_other = any(kw in query_lower for kw in other_set)
+        if has_solar and has_other:
+            domain = 'cross'
+            print(f"[Router] Cross-domain detected → cross")
             break
+
+    # 1b. Single-domain keyword map (only if cross not already detected)
+    if domain is None:
+        for keyword, mapped_domain in _KEYWORD_DOMAIN:
+            if keyword in query_lower:
+                domain = mapped_domain
+                print(f"[Router] Keyword match: '{keyword}' → {mapped_domain}")
+                break
 
     # 2. LLM routing only for queries with no keyword match
     if domain is None:
