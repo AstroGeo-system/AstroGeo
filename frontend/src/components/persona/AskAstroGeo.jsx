@@ -6,6 +6,59 @@ import { Search, ChevronDown, ChevronRight, Loader2 } from 'lucide-react'
 import { usePersona } from '@/hooks/usePersona'
 import { api } from '@/lib/api'
 
+// ── Lightweight markdown renderer (bold, headings, bullets, numbered) ────────
+function MarkdownMessage({ content }) {
+  if (!content) return null
+
+  const renderInline = (text) => {
+    const parts = text.split(/(\*\*[^*]+\*\*)/).filter(Boolean)
+    return parts.map((part, idx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={idx} className="font-semibold text-white">{part.slice(2, -2)}</strong>
+      }
+      return <span key={idx}>{part}</span>
+    })
+  }
+
+  const lines = content.split('\n')
+  const elements = []
+  let i = 0
+  while (i < lines.length) {
+    const line = lines[i].trim()
+    if (line.startsWith('### ')) {
+      elements.push(<p key={i} className="font-semibold text-slate-100 mt-3 mb-1 text-sm uppercase tracking-wide">{renderInline(line.slice(4))}</p>)
+      i++; continue
+    }
+    if (line.startsWith('## ')) {
+      elements.push(<p key={i} className="font-bold text-white mt-3 mb-1 text-sm uppercase tracking-wide border-b border-slate-700 pb-0.5">{renderInline(line.slice(3))}</p>)
+      i++; continue
+    }
+    if (line.startsWith('# ')) {
+      elements.push(<p key={i} className="font-bold text-cyan-300 mt-2 mb-1 text-sm uppercase tracking-wide">{renderInline(line.slice(2))}</p>)
+      i++; continue
+    }
+    if (/^[0-9]+\.\s/.test(line)) {
+      elements.push(<p key={i} className="mb-1 text-sm leading-relaxed text-slate-200">{renderInline(line)}</p>)
+      i++; continue
+    }
+    if (line.startsWith('- ') || line.startsWith('* ') || line.startsWith('• ')) {
+      const items = []
+      while (i < lines.length) {
+        const li = lines[i].trim()
+        const m = li.match(/^[-*•]\s+(.+)/)
+        if (m) { items.push(<li key={i} className="mb-0.5">{renderInline(m[1])}</li>); i++ }
+        else if (li === '') { i++; break } else break
+      }
+      elements.push(<ul key={`ul-${i}`} className="list-disc list-outside pl-4 my-1.5 text-sm text-slate-200">{items}</ul>)
+      continue
+    }
+    if (line === '') { elements.push(<div key={i} className="h-1.5" />); i++; continue }
+    elements.push(<p key={i} className="mb-1 text-sm leading-relaxed text-slate-200">{renderInline(line)}</p>)
+    i++
+  }
+  return <div className="space-y-0.5">{elements}</div>
+}
+
 // ── U1: Persona-aware suggestions ────────────────────────────────
 const PERSONA_SUGGESTIONS = {
   farmer: [
@@ -163,9 +216,7 @@ export default function AskAstroGeo({ prefill }) {
                 )}
 
                 {/* Answer */}
-                <p className="text-sm leading-relaxed text-slate-200">
-                  {result.answer ?? result.response ?? 'No answer returned.'}
-                </p>
+                <MarkdownMessage content={result.answer ?? result.response ?? 'No answer returned.'} />
 
                 {/* Evidence chain (collapsed, shown if researcher or technical mode) */}
                 {result.evidence_chain?.length > 0 && (isResearcher || !isSimple) && (
